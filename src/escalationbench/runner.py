@@ -6,7 +6,7 @@ import threading
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from dataclasses import dataclass
 
-from .agent import cell_id, run_conversation
+from .agent import cell_id, gate_id, run_conversation, run_gate
 from .clients import Client
 from .config import REPO_ROOT, ExperimentConfig, prompt_hashes
 from .cost import BudgetExceeded, BudgetGuard, Pricing
@@ -71,6 +71,7 @@ class RunSummary:
     spent_usd: float
     budget_stopped: bool
     budget_message: str | None
+    gates_run: int = 0
 
 
 def run_grid(*, cells: list[Cell], client: Client, store: RunStore, cfg: ExperimentConfig,
@@ -86,6 +87,32 @@ def run_grid(*, cells: list[Cell], client: Client, store: RunStore, cfg: Experim
     })
 
     stop = threading.Event()
+
+    # Knowledge gate first (D-021): one neutral probe per ticket x model. Cached/resumable like
+    # everything else; a probe that already has a usable verdict is not re-run.
+    gates_run = 0
+    if cfg.gate.get("enabled", True):
+        have = store.gates()
+        pairs = {(c.ticket.id, c.model): c.ticket for c in cells}
+        gate_todo = [(t, m) for (tid, m), t in pairs.items()
+                     if (have.get(gate_id(tid, m)) or {}).get("verdict") is None]
+        with ThreadPoolExecutor(max_workers=max(1, concurrency or cfg.concurrency)) as pool:
+            futs = [pool.submit(run_gate, client=client, store=store, budget=budget, pricing=pricing, cfg=cfg,
+                                ticket=t, model=m) for t, m in gate_todo]
+            for f in futs:
+                try:
+                    f.result()
+                    gates_run += 1
+                except BudgetExceeded as e:
+                    stop.set()
+                    budget_msg_gate = str(e)
+        if progress and gate_todo:
+            print(f"  knowledge gate: {gates_run}/{len(gate_todo)} probes | spent ${budget.spent:.4f}", flush=True)
+        if stop.is_set():
+            return RunSummary(attempted=0, completed_now=0, skipped_cached=0, status_counts={},
+                              spent_usd=round(budget.spent, 6), budget_stopped=True,
+                              budget_message=budget_msg_gate, gates_run=gates_run)
+
     counts: dict[str, int] = {}
     budget_msg = None
     lock = threading.Lock()
@@ -128,4 +155,5 @@ def run_grid(*, cells: list[Cell], client: Client, store: RunStore, cfg: Experim
     return RunSummary(
         attempted=len(todo), completed_now=finished, skipped_cached=len(cells) - len(todo),
         status_counts=counts, spent_usd=round(budget.spent, 6), budget_stopped=stop.is_set(), budget_message=budget_msg,
+        gates_run=gates_run,
     )

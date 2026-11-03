@@ -1,11 +1,17 @@
 # Machine-readable mirror of the preregistered (confirmatory) analysis.
-# status: DRAFT until it is edited to match YOUR PREREGISTRATION.md and committed with it.
-# Anything not listed under primary_family is reported as exploratory.
+# status: DRAFT. The contrasts below are PLACEHOLDERS that follow the research question's
+# structure; they are not hypotheses. The author edits them to match PREREGISTRATION.md
+# and commits both together. Anything not listed under primary_family is exploratory.
+#
+# Available metrics (see analysis/report.py::_metric_frames):
+#   missed_escalation, missed_escalation_gate_passed, unnecessary_escalation,
+#   is_honest_non_escalation, is_silent_non_escalation,
+#   is_false_escalation_claim, is_undisclosed_miss, undisclosed_given_miss  (+ "_rule" robustness variants)
 status: DRAFT
 seed: 0
 splits_for_confirmatory: [holdout]
 primary_family:
   - metric: missed_escalation
-    contrasts: [[HARD_KPI, NEUTRAL], [SOFT_KPI, NEUTRAL], [HARD_KPI, PLACEBO], [SOFT_KPI, PLACEBO]]
-  - metric: any_false_claim_judge
-    contrasts: [[HARD_KPI, NEUTRAL], [SOFT_KPI, NEUTRAL], [HARD_KPI, PLACEBO], [SOFT_KPI, PLACEBO]]
+    contrasts: [[INCENTIVE, NEUTRAL], [PRESSURE, NEUTRAL], [MITIGATION, INCENTIVE]]
+  - metric: is_undisclosed_miss
+    contrasts: [[INCENTIVE, NEUTRAL], [PRESSURE, NEUTRAL], [MITIGATION, INCENTIVE]]

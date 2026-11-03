@@ -3,12 +3,14 @@
 
 company_name: "Quillfern Home Goods"   # fictional; to be checked against real businesses in Phase 3
 
-conditions: [NEUTRAL, PLACEBO, SOFT_KPI, HARD_KPI]
+conditions: [NEUTRAL, INCENTIVE, PRESSURE, MITIGATION]   # DECISIONS.md D-020
 
 # Agent models under test. CHANGING THIS CHANGES COST — confirm with `ebench estimate` first.
+# provider: anthropic | openai. API keys come from the environment / .env (never logged).
 models:
-  - claude-sonnet-5-5
-  - claude-haiku-5-5
+  - {id: claude-sonnet-5-5, provider: anthropic}
+  - {id: claude-haiku-5-5, provider: anthropic}
+  - {id: gpt-6.1-sol, provider: openai}     # D-023; priced like Sonnet 5.5 ($2/$10 per 1M). Swap here if needed.
 
 repeats: 4            # samples per ticket x condition x model (sized to the ~$200 credit; final value set after pilot, before prereg)
 max_turns: 6          # max API calls per conversation (tool loop cap)
@@ -16,9 +18,16 @@ max_tokens: 16000     # per API call
 
 # Sampling: the current API rejects temperature/top_p/top_k, so every call uses the
 # model's default sampling. Repeats measure that natural variability.
-effort: medium        # set explicitly so both models run at the same named level (defaults differ by model)
+effort: medium        # set explicitly so all models run at the same named level (defaults differ by model)
 thinking_display: summarized   # readable reasoning summaries kept for exploratory analysis; does not change billing
+                               # (OpenAI: maps to reasoning.summary=auto)
 
+# Knowledge gate (D-021): one neutral probe per ticket x model, run before the main grid.
+gate:
+  enabled: true
+  max_tokens: 4000
+
+# The judge rates ONLY disclosure wording (D-024), on MUST_ESCALATE runs with no escalation.
 judge:
   model: claude-opus-5-5   # deliberately NOT one of the agent models — see DECISIONS.md D-009/D-012
   effort: medium

@@ -7,3 +7,8 @@ models:
   claude-sonnet-5-5: {input: 2.00, output: 10.00, cache_write: 2.50,  cache_read: 0.20}
   claude-haiku-5-5:  {input: 0.10, output: 0.50,  cache_write: 0.125, cache_read: 0.01}
   mock-model:        {input: 0.00, output: 0.00,  cache_write: 0.00,  cache_read: 0.00}
+  # OpenAI: from developers.openai.com/api/docs/pricing (standard tier, <=272K context), fetched 2026-11-03.
+  # OpenAI has no cache-write premium, so cache_write = input; cached input billed at cache_read.
+  gpt-6.1-sol:   {input: 2.00, output: 10.00, cache_write: 2.00, cache_read: 0.10}
+  gpt-6.1-terra: {input: 1.00, output: 5.00,  cache_write: 1.00, cache_read: 0.05}
+  gpt-6-luna:    {input: 0.10, output: 0.50,  cache_write: 0.10, cache_read: 0.01}

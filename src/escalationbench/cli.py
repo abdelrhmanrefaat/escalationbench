@@ -1,4 +1,4 @@
-"""Command line: ebench estimate | run | score | judge | export-labels | report
+"""Command line: ebench estimate | run | score | judge | export-labels | report | power
 
 Real (paid) runs require --yes AND an estimate within --max-usd, or an explicit
 --allow-over-estimate. The hard cap (--max-usd) always applies regardless.
@@ -11,7 +11,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from .agent import build_params
+from .agent import build_gate_params, build_params
 from .config import REPO_ROOT, ExperimentConfig, system_prompt
 from .cost import ConversationAssumptions, Pricing, estimate_conversation_cost, estimate_judge_cost
 from .rawlog import RunStore
@@ -19,13 +19,13 @@ from .runner import check_confirmatory_allowed, expand_grid, run_grid
 from .tickets import load_tickets
 
 
-def _client(dry_run: bool):
+def _client(dry_run: bool, cfg: ExperimentConfig):
     if dry_run:
         from .clients import MockClient
         return MockClient()
-    load_dotenv(REPO_ROOT / ".env")  # loads ANTHROPIC_API_KEY into the environment; never printed
-    from .clients import AnthropicClient
-    return AnthropicClient()
+    load_dotenv(REPO_ROOT / ".env")  # loads ANTHROPIC_API_KEY / OPENAI_API_KEY into the environment; never printed
+    from .clients import RoutingClient
+    return RoutingClient(cfg.providers)
 
 
 def _load(args):
@@ -59,10 +59,21 @@ def estimate(cfg, tickets, models, conditions, repeats, pricing, client, judge=T
             sub = per_conv * len(tickets) * repeats
             total += sub
             lines.append((model, cond, int(mean_first), per_conv, sub))
+    gate_total = 0.0
+    if cfg.gate.get("enabled", True):
+        for model in models:
+            r = pricing.rates(model)
+            for t in tickets:
+                tok = client.count_tokens(build_gate_params(cfg, model, t))
+                gate_total += (tok * r["input"] + a.output_tokens_per_call * r["output"]) / 1_000_000
+            lines.append((model, "GATE", 0, 0.0, 0.0))
     n_convs = len(tickets) * len(models) * len(conditions) * repeats
-    judge_cost = estimate_judge_cost(pricing, cfg.judge.model, n_convs) if judge else 0.0
-    return {"lines": lines, "agent_total": total, "judge_total": judge_cost, "n_conversations": n_convs,
-            "with_margin": (total + judge_cost) * a.safety_margin, "assumptions": a}
+    n_must = sum(t.label == "MUST_ESCALATE" for t in tickets) * len(models) * len(conditions) * repeats
+    # Upper bound: the judge only sees un-escalated MUST_ESCALATE runs; assume all of them.
+    judge_cost = estimate_judge_cost(pricing, cfg.judge.model, n_must) if judge else 0.0
+    return {"lines": lines, "agent_total": total + gate_total, "gate_total": gate_total, "judge_total": judge_cost,
+            "n_conversations": n_convs, "with_margin": (total + gate_total + judge_cost) * a.safety_margin,
+            "assumptions": a}
 
 
 def print_estimate(e: dict, pricing: Pricing, mock: bool) -> None:
@@ -72,22 +83,24 @@ def print_estimate(e: dict, pricing: Pricing, mock: bool) -> None:
           f"{a.output_tokens_per_call} output tokens/call, no caching discount.")
     print(f"{'model':<20}{'condition':<11}{'1st-call in tok':>16}{'$/conv':>10}{'subtotal $':>12}")
     for m, c, tok, per, sub in e["lines"]:
-        print(f"{m:<20}{c:<11}{tok:>16}{per:>10.4f}{sub:>12.2f}")
-    print(f"Conversations: {e['n_conversations']}  agent ${e['agent_total']:.2f}  judge ${e['judge_total']:.2f}  "
+        if c != "GATE":
+            print(f"{m:<20}{c:<11}{tok:>16}{per:>10.4f}{sub:>12.2f}")
+    print(f"Knowledge gate probes: ${e['gate_total']:.2f} (included in agent total)")
+    print(f"Conversations: {e['n_conversations']}  agent ${e['agent_total']:.2f}  judge (upper bound) ${e['judge_total']:.2f}  "
           f"total with x{a.safety_margin} margin: ${e['with_margin']:.2f}\n")
 
 
 def cmd_estimate(args):
     cfg, tickets, models, conditions, repeats = _load(args)
     pricing = Pricing.load()
-    client = _client(args.dry_run)
+    client = _client(args.dry_run, cfg)
     print_estimate(estimate(cfg, tickets, models, conditions, repeats, pricing, client), pricing, client.is_mock)
 
 
 def cmd_run(args):
     cfg, tickets, models, conditions, repeats = _load(args)
     pricing = Pricing.load()
-    client = _client(args.dry_run)
+    client = _client(args.dry_run, cfg)
     if args.dry_run and not args.run_id.startswith("dryrun-"):
         sys.exit("Dry-run run ids must start with 'dryrun-' so they are never mistaken for real data.")
     if not args.dry_run and args.run_id.startswith("dryrun-"):
@@ -106,7 +119,7 @@ def cmd_run(args):
     s = run_grid(cells=cells, client=client, store=store, cfg=cfg, pricing=pricing, max_usd=args.max_usd,
                  retry_errors=args.retry_errors, concurrency=args.concurrency,
                  manifest_extra={"tickets_file": str(args.tickets), "confirmatory": args.confirmatory})
-    print(f"Done. new={s.completed_now} cached/skipped={s.skipped_cached} status={s.status_counts} spent=${s.spent_usd:.4f}")
+    print(f"Done. gate probes={s.gates_run} new={s.completed_now} cached/skipped={s.skipped_cached} status={s.status_counts} spent=${s.spent_usd:.4f}")
     if s.budget_stopped:
         print(f"STOPPED AT BUDGET: {s.budget_message}\nRe-run the same command with a higher --max-usd to resume.")
         sys.exit(2)
@@ -126,9 +139,10 @@ def cmd_judge(args):
     cfg = ExperimentConfig.load(args.config)
     store = RunStore(args.run_id)
     tickets = {t.id: t.customer_message for t in load_tickets(args.tickets)}
-    client = _client(args.dry_run)
+    client = _client(args.dry_run, cfg)
     if not args.dry_run and not args.yes:
-        n = len([c for c in store.conversations() if c["status"] == "COMPLETED"])
+        from .scoring.judge import needs_judgment
+        n = len([c for c in store.conversations() if needs_judgment(c)])
         print(f"Judge estimate: ~${estimate_judge_cost(Pricing.load(), cfg.judge.model, n):.2f} for {n} conversations "
               f"with {cfg.judge.model}. Pass --yes to start.")
         sys.exit(1)
@@ -156,6 +170,38 @@ def cmd_report(args):
     splits = args.splits.split(",") if args.splits else None
     out = generate(args.run_id, splits=splits)
     print(f"Wrote tables, figures and REPORT.md to {out}")
+
+
+def cmd_power(args):
+    import pandas as pd
+    from .analysis.power import floor_check, power_table
+    from .analysis.report import RESULTS_DIR, build_scored, load_analysis_plan
+    store = RunStore(args.run_id)
+    df = build_scored(store)
+    df = df[(df["status"] != "API_ERROR") & (df["label"] == "MUST_ESCALATE")]
+    if df.empty:
+        sys.exit("No scored MUST_ESCALATE runs in this run.")
+    plan = load_analysis_plan()
+    n_tests = sum(len(s["contrasts"]) for s in plan["primary_family"]) * df["model"].nunique()
+    out = (RESULTS_DIR / "dryrun" / args.run_id if store.is_dry_run() else RESULTS_DIR / args.run_id) / "tables"
+    out.mkdir(parents=True, exist_ok=True)
+    floors, powers = [], []
+    for col in args.metrics.split(","):
+        d = df[df[col].notna()].assign(**{col: lambda x, c=col: x[c].astype(float)})
+        floors.append(floor_check(d, col))
+        powers.append(power_table(d, col, args.baseline, args.n_tickets, args.repeats, n_tests, seed=args.seed))
+    fl, pw = pd.concat(floors, ignore_index=True), pd.concat(powers, ignore_index=True)
+    fl.to_csv(out / "power_floor_check.csv", index=False)
+    pw.to_csv(out / "power_simulation.csv", index=False)
+    if store.is_dry_run():
+        print("MOCK DATA: these numbers test the code path only.")
+    print("\nFloor check (pilot rates by condition):\n" + fl.to_string(index=False))
+    if fl["floor_all_conditions"].any():
+        print("\nFLOOR: at least one model is below 2% in EVERY condition. Per the plan, report this to the "
+              "author before changing anything; do not make scenarios more extreme.")
+    print(f"\nSimulated power (n_tickets={args.n_tickets}, repeats={args.repeats}, {n_tests} tests, Bonferroni):\n"
+          + pw.pivot_table(index=["model", "metric", "baseline_rate"], columns="delta", values="power").round(2).to_string())
+    print(f"\nWrote {out/'power_floor_check.csv'} and {out/'power_simulation.csv'}")
 
 
 def main(argv=None):
@@ -197,6 +243,15 @@ def main(argv=None):
 
     sp = sub.add_parser("report"); sp.add_argument("--run-id", required=True)
     sp.add_argument("--splits", help="comma list, e.g. holdout"); sp.set_defaults(func=cmd_report)
+
+    sp = sub.add_parser("power", help="pilot floor check + simulated power for the planned full run")
+    sp.add_argument("--run-id", required=True)
+    sp.add_argument("--n-tickets", type=int, default=70, help="MUST_ESCALATE tickets in the planned confirmatory set")
+    sp.add_argument("--repeats", type=int, default=2)
+    sp.add_argument("--baseline", default="NEUTRAL")
+    sp.add_argument("--metrics", default="missed_escalation,is_undisclosed_miss")
+    sp.add_argument("--seed", type=int, default=0)
+    sp.set_defaults(func=cmd_power)
 
     args = p.parse_args(argv)
     args.func(args)

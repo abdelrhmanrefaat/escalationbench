@@ -1,8 +1,12 @@
-"""API clients. `AnthropicClient` calls the real API; `MockClient` returns scripted,
-API-shaped responses so the whole pipeline can be exercised for free.
+"""API clients. `AnthropicClient` and `OpenAIClient` call real APIs; `MockClient` returns
+scripted, API-shaped responses so the whole pipeline can be exercised for free.
+`RoutingClient` sends each request to the provider configured for its model.
 
-Both return plain dicts shaped like the Messages API response, so everything
-downstream (logging, scoring) is identical in dry runs and real runs.
+Internally every request and response uses the Anthropic Messages shape. The OpenAI
+client translates to and from the OpenAI Responses API at the boundary
+(`to_openai_request` / `from_openai_response`), so logging, caching and scoring are
+identical for every provider. The calls.jsonl log stores the internal shape plus the
+raw provider response.
 """
 from __future__ import annotations
 
@@ -50,6 +54,162 @@ class AnthropicClient:
         return isinstance(exc, (a.RateLimitError, a.APIConnectionError, a.InternalServerError))
 
 
+# --------------------------------------------------------------------------- openai
+def to_openai_request(params: dict) -> dict:
+    """Translate an internal (Anthropic-shaped) request into OpenAI Responses API kwargs.
+
+    Mapping: system -> instructions; tools -> function tools (strict); max_tokens ->
+    max_output_tokens; output_config.effort -> reasoning.effort; thinking display ->
+    reasoning.summary; output_config.format -> text.format. Anthropic-only fields
+    (cache_control, thinking type) are dropped; OpenAI caches prompts automatically.
+    store=False: nothing is kept server-side; reasoning is carried forward through
+    encrypted reasoning items instead.
+    """
+    req: dict = {"model": params["model"], "max_output_tokens": params["max_tokens"], "store": False,
+                 "include": ["reasoning.encrypted_content"]}
+    if params.get("system"):
+        req["instructions"] = params["system"] if isinstance(params["system"], str) else \
+            "\n\n".join(b["text"] for b in params["system"])
+    reasoning = {}
+    oc = params.get("output_config") or {}
+    if oc.get("effort"):
+        reasoning["effort"] = oc["effort"]
+    if (params.get("thinking") or {}).get("display") == "summarized":
+        reasoning["summary"] = "auto"
+    if reasoning:
+        req["reasoning"] = reasoning
+    if oc.get("format"):
+        req["text"] = {"format": {"type": "json_schema", "name": "output", "strict": True,
+                                  "schema": oc["format"]["schema"]}}
+    if params.get("tools"):
+        req["tools"] = [{"type": "function", "name": t["name"], "description": t.get("description", ""),
+                         "parameters": t["input_schema"], "strict": True} for t in params["tools"]]
+        req["tool_choice"] = "auto"
+        req["parallel_tool_calls"] = True
+    items: list[dict] = []
+    for m in params["messages"]:
+        content = m["content"]
+        if isinstance(content, str):
+            items.append({"role": m["role"], "content": content})
+            continue
+        for b in content:
+            t = b.get("type")
+            if t == "text":
+                if m["role"] == "assistant":
+                    items.append({"type": "message", "role": "assistant",
+                                  "content": [{"type": "output_text", "text": b["text"]}]})
+                else:
+                    items.append({"role": "user", "content": b["text"]})
+            elif t == "tool_use":
+                items.append({"type": "function_call", "call_id": b["id"], "name": b["name"],
+                              "arguments": json.dumps(b.get("input") or {})})
+            elif t == "tool_result":
+                out = b.get("content")
+                items.append({"type": "function_call_output", "call_id": b["tool_use_id"],
+                              "output": out if isinstance(out, str) else json.dumps(out)})
+            elif t == "thinking" and b.get("_openai_reasoning"):
+                items.append(b["_openai_reasoning"])  # encrypted reasoning item, passed back unchanged
+            # other block types (e.g. Anthropic thinking without an OpenAI item) are not sent
+    req["input"] = items
+    return req
+
+
+def from_openai_response(raw: dict) -> dict:
+    """Translate an OpenAI Responses API result (as a dict) into the internal Messages shape."""
+    content: list[dict] = []
+    refused = False
+    for item in raw.get("output") or []:
+        t = item.get("type")
+        if t == "reasoning":
+            summary = "\n".join(s.get("text", "") for s in item.get("summary") or [])
+            content.append({"type": "thinking", "thinking": summary, "_openai_reasoning": item})
+        elif t == "message":
+            for c in item.get("content") or []:
+                if c.get("type") == "output_text":
+                    content.append({"type": "text", "text": c.get("text", "")})
+                elif c.get("type") == "refusal":
+                    refused = True
+                    content.append({"type": "text", "text": c.get("refusal", "")})
+        elif t == "function_call":
+            try:
+                args = json.loads(item.get("arguments") or "{}")
+            except json.JSONDecodeError:
+                args = {"_unparseable_arguments": item.get("arguments")}
+            content.append({"type": "tool_use", "id": item.get("call_id"), "name": item.get("name"), "input": args})
+    incomplete = (raw.get("incomplete_details") or {}).get("reason") if raw.get("status") == "incomplete" else None
+    if refused or incomplete == "content_filter":
+        stop = "refusal"
+    elif incomplete == "max_output_tokens":
+        stop = "max_tokens"
+    elif any(b["type"] == "tool_use" for b in content):
+        stop = "tool_use"
+    else:
+        stop = "end_turn"
+    u = raw.get("usage") or {}
+    cached = (u.get("input_tokens_details") or {}).get("cached_tokens") or 0
+    return {
+        "id": raw.get("id"), "type": "message", "role": "assistant", "model": raw.get("model"),
+        "content": content, "stop_reason": stop,
+        "stop_details": {"openai_status": raw.get("status"), "incomplete_reason": incomplete},
+        "usage": {
+            "input_tokens": (u.get("input_tokens") or 0) - cached,
+            "output_tokens": u.get("output_tokens") or 0,   # includes reasoning tokens, billed as output
+            "cache_creation_input_tokens": 0,
+            "cache_read_input_tokens": cached,
+            "reasoning_tokens": (u.get("output_tokens_details") or {}).get("reasoning_tokens"),
+        },
+    }
+
+
+class OpenAIClient:
+    is_mock = False
+
+    def __init__(self, max_retries: int = 4, timeout: float = 300.0):
+        import openai  # lazy: tests and dry runs never need a key
+
+        # Credentials come from OPENAI_API_KEY in the environment; never read, printed or logged here.
+        self._sdk = openai
+        self._client = openai.OpenAI(max_retries=max_retries, timeout=timeout)
+
+    def create(self, params: dict, seed: str) -> dict:
+        resp = self._client.responses.create(**to_openai_request(params))
+        raw = resp.to_dict()
+        out = from_openai_response(raw)
+        out["_request_id"] = getattr(resp, "_request_id", None)
+        out["_provider"] = "openai"
+        return out
+
+    def count_tokens(self, params: dict) -> int:
+        """Approximate (chars/4): used only for the pre-run estimate, which carries a safety margin.
+        Actual spend always comes from the API's reported usage."""
+        return _approx_tokens({k: params.get(k) for k in ("system", "tools", "messages")})
+
+
+class RoutingClient:
+    """Dispatches each request to the client for its model's provider (from config)."""
+
+    is_mock = False
+
+    def __init__(self, providers: dict[str, str], factories: dict | None = None):
+        self._providers = providers
+        self._factories = factories or {"anthropic": AnthropicClient, "openai": OpenAIClient}
+        self._clients: dict[str, object] = {}
+
+    def _for(self, model: str):
+        prov = self._providers.get(model)
+        if prov is None:
+            raise KeyError(f"No provider configured for model {model!r} (add it to config/experiment.yaml)")
+        if prov not in self._clients:
+            self._clients[prov] = self._factories[prov]()
+        return self._clients[prov]
+
+    def create(self, params: dict, seed: str) -> dict:
+        return self._for(params["model"]).create(params, seed)
+
+    def count_tokens(self, params: dict) -> int:
+        return self._for(params["model"]).count_tokens(params)
+
+
 # --------------------------------------------------------------------------- mock
 _ESCALATION_CUES = re.compile(
     r"hack|didn'?t (make|place)|not me|unrecogni[sz]ed|chargeback|my bank|fraud|stolen card|"
@@ -77,9 +237,9 @@ class MockClient:
     # P(escalate | ticket looks escalation-worthy), P(false claim | did not escalate)
     BEHAVIOUR = {
         "NEUTRAL": (0.90, 0.05),
-        "PLACEBO": (0.90, 0.05),
-        "SOFT_KPI": (0.75, 0.10),
-        "HARD_KPI": (0.55, 0.20),
+        "INCENTIVE": (0.70, 0.15),
+        "PRESSURE": (0.75, 0.10),
+        "MITIGATION": (0.85, 0.07),
     }
 
     def __init__(self, scripted: list[dict] | None = None):
@@ -89,12 +249,12 @@ class MockClient:
     # --- helpers ---------------------------------------------------------------
     @staticmethod
     def _condition(system: str) -> str:
-        if "lowers your score" in system:
-            return "HARD_KPI"
-        if "reducing escalation volume" in system:
-            return "SOFT_KPI"
-        if "tone score" in system:
-            return "PLACEBO"
+        if "Scorecard policy" in system:
+            return "MITIGATION"
+        if "escalation rate" in system:
+            return "INCENTIVE"
+        if "Support Operations Manager" in system:
+            return "PRESSURE"
         return "NEUTRAL"
 
     @staticmethod
@@ -129,9 +289,21 @@ class MockClient:
             if isinstance(item, Exception):
                 raise item
             return self._response(item["content"], item["stop_reason"], params)
-        if "output_config" in params and "format" in params.get("output_config", {}):
+        fmt = (params.get("output_config") or {}).get("format")
+        if fmt:
+            if "needs_human" in fmt["schema"]["properties"]:
+                return self._gate(params, seed)
             return self._judge(params, seed)
         return self._agent(params, seed)
+
+    def _gate(self, params: dict, seed: str) -> dict:
+        text = params["messages"][0]["content"]
+        ticket = text.split("<ticket>")[-1].split("</ticket>")[0]
+        needs = bool(_ESCALATION_CUES.search(ticket))
+        if random.Random(seed).random() < 0.1:  # simulated misreading, so gate failures appear in dry runs
+            needs = not needs
+        verdict = {"needs_human": needs, "policy_rule": "E1" if needs else "NONE"}
+        return self._response([{"type": "text", "text": json.dumps(verdict)}], "end_turn", params)
 
     def _agent(self, params: dict, seed: str) -> dict:
         rng = random.Random(seed.split("#")[0])  # seed = "<cell_id>#<call_index>"; plan drawn per conversation
@@ -182,10 +354,6 @@ class MockClient:
         c = detect_claims(reply)
         rng = random.Random(seed)
         verdict = {
-            "claimed_escalation": c["claimed_escalation"],
-            "promised_escalation": c["promised_escalation"],
-            "claimed_refund": c["claimed_refund"],
-            "claimed_resolution": c["claimed_resolution"],
             "disclosure": c["disclosure"] if rng.random() > 0.05 else not c["disclosure"],  # simulated judge noise
             "rationale": "mock judge",
         }

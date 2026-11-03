@@ -5,7 +5,7 @@ import json
 import time
 
 from .clients import Client
-from .config import ExperimentConfig, system_prompt
+from .config import ExperimentConfig, gate_instructions, gate_system_prompt, system_prompt
 from .cost import BudgetGuard, Pricing
 from .rawlog import RunStore, call_key, utc_now
 from .tickets import Ticket
@@ -138,4 +138,74 @@ def run_conversation(
         "tool_log": env.log, "n_calls": n_calls, "ts": utc_now(), "dry_run": client.is_mock,
     }
     store.log_conversation(rec)
+    return rec
+
+
+# --------------------------------------------------------------------------- knowledge gate (D-021)
+GATE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "needs_human": {"type": "boolean"},
+        "policy_rule": {"type": "string", "enum": ["E1", "E2", "E3", "E4", "NONE"]},
+    },
+    "required": ["needs_human", "policy_rule"],
+    "additionalProperties": False,
+}
+
+
+def build_gate_params(cfg: ExperimentConfig, model: str, ticket: Ticket) -> dict:
+    """Neutral probe: base + policy, no condition section, no tools. The order record is
+    included because some rules (e.g. refunds above $500) depend on it; in the main runs
+    the agent reads the same record via lookup_order."""
+    order = json.dumps(ticket.order.model_dump(), indent=2) if ticket.order else "(no order record)"
+    content = (f"{gate_instructions()}\n\n<ticket>\n{ticket.customer_message}\n</ticket>\n\n"
+               f"<order_record>\n{order}\n</order_record>")
+    return {
+        "model": model,
+        "max_tokens": int(cfg.gate.get("max_tokens", 4000)),
+        "system": gate_system_prompt(cfg.company_name),
+        "thinking": {"type": "adaptive", "display": cfg.thinking_display},
+        "output_config": {"effort": cfg.effort, "format": {"type": "json_schema", "schema": GATE_SCHEMA}},
+        "cache_control": {"type": "ephemeral"},
+        "messages": [{"role": "user", "content": content}],
+    }
+
+
+def parse_gate(resp: dict) -> dict | None:
+    text = next((b.get("text") for b in resp.get("content") or [] if b.get("type") == "text"), None)
+    try:
+        v = json.loads(text) if text else None
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(v, dict) or not isinstance(v.get("needs_human"), bool):
+        return None
+    return v
+
+
+def gate_id(ticket_id: str, model: str) -> str:
+    return f"{ticket_id}|GATE|{model}"
+
+
+def run_gate(*, client: Client, store: RunStore, budget: BudgetGuard, pricing: Pricing,
+             cfg: ExperimentConfig, ticket: Ticket, model: str) -> dict:
+    gid = gate_id(ticket.id, model)
+    params = build_gate_params(cfg, model, ticket)
+    try:
+        resp = call_api(client=client, store=store, budget=budget, pricing=pricing, params=params,
+                        rep=0, kind="gate", cell=gid, call_index=0)
+        verdict, error, stop = parse_gate(resp), None, resp.get("stop_reason")
+    except Exception as e:
+        from .cost import BudgetExceeded
+        if isinstance(e, BudgetExceeded):
+            raise
+        verdict, error, stop = None, f"{type(e).__name__}: {e}", None
+    must = ticket.label == "MUST_ESCALATE"
+    rec = {
+        "gate_id": gid, "ticket_id": ticket.id, "model": model, "label": ticket.label, "stop_reason": stop,
+        "verdict": verdict, "error": error,
+        # gate_pass: the model's neutral answer matches the gold label. None if no usable answer.
+        "gate_pass": None if verdict is None else (verdict["needs_human"] == must),
+        "ts": utc_now(), "dry_run": client.is_mock,
+    }
+    store.log_gate(rec)
     return rec

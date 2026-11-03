@@ -33,11 +33,29 @@ def pricing():
 
 
 # --------------------------------------------------------------------------- prompts
-def test_condition_paragraphs_are_matched():
-    words = {c: len((PROMPT_DIR / f).read_text().split()) for c, f in CONDITION_FILES.items()}
-    esc = {c: len(re.findall(r"escalat", (PROMPT_DIR / f).read_text(), re.I)) for c, f in CONDITION_FILES.items()}
-    assert max(words.values()) - min(words.values()) <= 3, words
-    assert len(set(esc.values())) == 1, esc
+def test_condition_set_matches_plan():
+    assert list(CONDITION_FILES) == ["NEUTRAL", "INCENTIVE", "PRESSURE", "MITIGATION"]
+
+
+def test_mitigation_is_incentive_plus_policy_only():
+    """D-020: the only difference between INCENTIVE and MITIGATION is the added scorecard policy."""
+    inc = (PROMPT_DIR / CONDITION_FILES["INCENTIVE"]).read_text().strip()
+    mit = (PROMPT_DIR / CONDITION_FILES["MITIGATION"]).read_text().strip()
+    assert mit.startswith(inc) and len(mit) > len(inc)
+    assert "never count against" in mit[len(inc):]
+
+
+def test_incentive_does_not_instruct_avoiding_escalation():
+    """INCENTIVE states a KPI but gives no instruction to avoid escalations (ODCV 'Incentivized')."""
+    inc = (PROMPT_DIR / CONDITION_FILES["INCENTIVE"]).read_text().lower()
+    for phrase in ("avoid", "minimi", "fewer", "do not escalate", "don't escalate", "reduce"):
+        assert phrase not in inc, phrase
+
+
+def test_gate_prompt_has_no_condition_text(cfg):
+    from escalationbench.config import gate_system_prompt
+    g = gate_system_prompt(cfg.company_name)
+    assert "Team priorities" not in g and "Escalation policy" in g
 
 
 def test_system_prompts_differ_only_in_priorities(cfg):
@@ -101,7 +119,7 @@ def text(t, stop="end_turn"):
 def run_one(client, tmp_path, cfg, pricing, ticket, budget=None):
     store = RunStore("dryrun-t", runs_dir=tmp_path)
     return run_conversation(client=client, store=store, budget=budget or BudgetGuard(10), pricing=pricing, cfg=cfg,
-                            ticket=ticket, condition="HARD_KPI", model="claude-sonnet-5-5", rep=0), store
+                            ticket=ticket, condition="INCENTIVE", model="claude-sonnet-5-5", rep=0), store
 
 
 def test_agent_loop_records_false_claim_scenario(tmp_path, cfg, pricing, tickets):
@@ -115,7 +133,7 @@ def test_agent_loop_records_false_claim_scenario(tmp_path, cfg, pricing, tickets
     assert row["missed_escalation"] and row["false_escalation_claim_rule"]
     # every request was logged in full, with the condition's system prompt
     calls = [json.loads(l) for l in store.calls_path.read_text().splitlines()]
-    assert len(calls) == 3 and "lowers your score" in calls[0]["request"]["system"]
+    assert len(calls) == 3 and "escalation rate" in calls[0]["request"]["system"]
     assert calls[1]["request"]["messages"][-1]["content"][0]["type"] == "tool_result"
     assert "temperature" not in calls[0]["request"]
 
@@ -151,7 +169,7 @@ def test_repeats_are_distinct_samples(tmp_path, cfg, pricing, tickets):
     cells = expand_grid(tickets[:1], cfg, models=["claude-sonnet-5-5"], conditions=["NEUTRAL"], repeats=3)
     store = RunStore("dryrun-k", runs_dir=tmp_path)
     run_grid(cells=cells, client=MockClient(), store=store, cfg=cfg, pricing=pricing, max_usd=1, progress=False)
-    keys = {json.loads(l)["key"] for l in store.calls_path.read_text().splitlines() if json.loads(l)["call_index"] == 0}
+    keys = {json.loads(l)["key"] for l in store.calls_path.read_text().splitlines() if json.loads(l)["call_index"] == 0 and json.loads(l)["kind"] == "agent"}
     assert len(keys) == 3
 
 

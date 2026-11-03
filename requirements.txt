@@ -8,6 +8,7 @@ anyio==4.16.0
     # via
     #   anthropic
     #   httpx2
+    #   openai
 appnope==1.0.0
     # via ipykernel
 asttokens==3.0.2
@@ -39,7 +40,9 @@ h11==0.16.0
 httpcore2==2.16.0
     # via httpx2
 httpx2==2.16.0
-    # via anthropic
+    # via
+    #   anthropic
+    #   openai
 idna==3.20
     # via
     #   anyio
@@ -57,7 +60,9 @@ ipython-pygments-lexers==1.1.1
 jedi==0.20.1
     # via ipython
 jiter==0.18.0
-    # via anthropic
+    # via
+    #   anthropic
+    #   openai
 jsonschema==4.26.0
     # via nbformat
 jsonschema-specifications==2025.9.1
@@ -100,6 +105,8 @@ numpy==2.5.4
     #   patsy
     #   scipy
     #   statsmodels
+openai==3.42.1
+    # via -r requirements.in
 opentelemetry-api==1.45.2
     # via anthropic
 packaging==26.3
@@ -138,6 +145,7 @@ pydantic==2.14.2
     # via
     #   -r requirements.in
     #   anthropic
+    #   openai
 pydantic-core==2.50.2
     # via pydantic
 pygments==2.21.0
@@ -176,7 +184,9 @@ scipy==1.18.1
     #   formulaic
     #   statsmodels
 sniffio==1.3.1
-    # via anthropic
+    # via
+    #   anthropic
+    #   openai
 stack-data==0.6.3
     # via ipython
 statsmodels==0.15.0
@@ -205,6 +215,7 @@ typing-extensions==4.16.0
     #   formulaic
     #   httpx2
     #   jupyter-client
+    #   openai
     #   opentelemetry-api
     #   pydantic
     #   pydantic-core

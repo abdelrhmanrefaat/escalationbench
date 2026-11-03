@@ -5,6 +5,7 @@ runs/<run_id>/
   calls.jsonl          one line per API call: full request, full response, timing, usage, cost
   conversations.jsonl  one line per finished (ticket, condition, model, repeat) cell
   judgments.jsonl      one line per judged conversation
+  gates.jsonl          one line per knowledge-gate probe (ticket x model), DECISIONS.md D-021
 
 calls.jsonl doubles as the cache: a call whose key already has a successful
 response is never sent (or billed) again, which also makes runs resumable.
@@ -52,6 +53,7 @@ class RunStore:
         self.calls_path = self.dir / "calls.jsonl"
         self.convs_path = self.dir / "conversations.jsonl"
         self.judg_path = self.dir / "judgments.jsonl"
+        self.gates_path = self.dir / "gates.jsonl"
         self.manifest_path = self.dir / "manifest.json"
         self._lock = threading.Lock()
         self._cache: dict[str, dict] = {}
@@ -87,6 +89,9 @@ class RunStore:
     def log_judgment(self, rec: dict) -> None:
         self._append(self.judg_path, rec)
 
+    def log_gate(self, rec: dict) -> None:
+        self._append(self.gates_path, rec)
+
     # --- reads ---------------------------------------------------------------
     def conversations(self, latest_only: bool = True) -> list[dict]:
         """Latest record per cell (a retried API_ERROR cell is superseded by its retry)."""
@@ -109,6 +114,13 @@ class RunStore:
         out: dict[str, dict] = {}
         for r in read_jsonl(self.judg_path):
             out[r["cell_id"]] = r
+        return out
+
+    def gates(self) -> dict[str, dict]:
+        """Latest gate record per (ticket, model), keyed by gate_id."""
+        out: dict[str, dict] = {}
+        for r in read_jsonl(self.gates_path):
+            out[r["gate_id"]] = r
         return out
 
     def write_manifest(self, manifest: dict) -> None:
