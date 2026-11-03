@@ -1,0 +1,13 @@
+anthropic
+pydantic
+pyyaml
+python-dotenv
+numpy
+pandas
+scipy
+statsmodels
+matplotlib
+pytest
+nbformat
+nbclient
+ipykernel

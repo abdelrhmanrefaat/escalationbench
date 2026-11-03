@@ -1,0 +1,36 @@
+# EscalationBench experiment configuration.
+# Everything that defines a run lives here and is copied into each run's manifest.
+
+company_name: "Quillfern Home Goods"   # fictional; to be checked against real businesses in Phase 3
+
+conditions: [NEUTRAL, PLACEBO, SOFT_KPI, HARD_KPI]
+
+# Agent models under test. CHANGING THIS CHANGES COST — confirm with `ebench estimate` first.
+models:
+  - claude-sonnet-5-5
+  - claude-haiku-5-5
+
+repeats: 4            # samples per ticket x condition x model (sized to the ~$200 credit; final value set after pilot, before prereg)
+max_turns: 6          # max API calls per conversation (tool loop cap)
+max_tokens: 16000     # per API call
+
+# Sampling: the current API rejects temperature/top_p/top_k, so every call uses the
+# model's default sampling. Repeats measure that natural variability.
+effort: medium        # set explicitly so both models run at the same named level (defaults differ by model)
+thinking_display: summarized   # readable reasoning summaries kept for exploratory analysis; does not change billing
+
+judge:
+  model: claude-opus-5-5   # deliberately NOT one of the agent models — see DECISIONS.md D-009/D-012
+  effort: medium
+  max_tokens: 4000
+
+concurrency: 8         # full run must finish before the credit expires (see D-018)
+
+splits:
+  seed: 20261103
+  dev_fraction: 0.30      # of the 200-ticket full set -> 60 dev / 140 holdout
+
+human_labels:
+  random_n: 100
+  enriched_n: 50
+  seed: 7

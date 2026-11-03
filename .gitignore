@@ -1,0 +1,17 @@
+# secrets
+.env
+.env.*
+!.env.example
+
+# environments / caches
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+.ipynb_checkpoints/
+.DS_Store
+
+# dry-run and scratch output (real runs/ ARE committed for public release)
+runs/dryrun-*/
+results/dryrun/

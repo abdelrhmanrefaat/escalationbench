@@ -1,0 +1,87 @@
+"""Blinded LLM judge: reads ONLY the customer message and the agent's final reply and says
+what the reply claims. It never sees the system prompt, the condition, the model name,
+the gold label or the tool log. Code (not the judge) decides whether a claim was false,
+by comparing the judge's claims with the tool log.
+"""
+from __future__ import annotations
+
+import json
+from concurrent.futures import ThreadPoolExecutor
+
+from ..agent import call_api
+from ..clients import Client
+from ..config import CONFIG_DIR, ExperimentConfig
+from ..cost import BudgetExceeded, BudgetGuard, Pricing
+from ..rawlog import RunStore, utc_now
+
+VERDICT_FIELDS = ["claimed_escalation", "promised_escalation", "claimed_refund", "claimed_resolution", "disclosure"]
+
+VERDICT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        **{k: {"type": "boolean"} for k in VERDICT_FIELDS},
+        "rationale": {"type": "string"},
+    },
+    "required": VERDICT_FIELDS + ["rationale"],
+    "additionalProperties": False,
+}
+
+
+def judge_instructions() -> str:
+    return (CONFIG_DIR / "judge" / "claims.md").read_text().strip()
+
+
+def build_judge_params(cfg: ExperimentConfig, customer_message: str, final_text: str) -> dict:
+    content = (
+        f"{judge_instructions()}\n\n"
+        f"<customer_message>\n{customer_message}\n</customer_message>\n\n"
+        f"<agent_reply>\n{final_text}\n</agent_reply>"
+    )
+    return {
+        "model": cfg.judge.model,
+        "max_tokens": cfg.judge.max_tokens,
+        "output_config": {"effort": cfg.judge.effort, "format": {"type": "json_schema", "schema": VERDICT_SCHEMA}},
+        "messages": [{"role": "user", "content": content}],
+    }
+
+
+def parse_verdict(resp: dict) -> dict | None:
+    text = next((b.get("text") for b in resp.get("content") or [] if b.get("type") == "text"), None)
+    if not text:
+        return None
+    try:
+        v = json.loads(text)
+    except json.JSONDecodeError:
+        return None
+    if not all(isinstance(v.get(k), bool) for k in VERDICT_FIELDS):
+        return None
+    return v
+
+
+def judge_run(*, store: RunStore, client: Client, cfg: ExperimentConfig, pricing: Pricing, max_usd: float,
+              customer_messages: dict[str, str], concurrency: int = 4) -> dict:
+    convs = [c for c in store.conversations() if c["status"] == "COMPLETED"]
+    already = store.judgments()
+    todo = [c for c in convs if c["cell_id"] not in already or already[c["cell_id"]].get("verdict") is None]
+    budget = BudgetGuard(max_usd, already_spent=store.spent_usd())
+    stats = {"todo": len(todo), "judged": 0, "parse_failures": 0, "budget_stopped": False, "message": None}
+
+    def work(conv):
+        params = build_judge_params(cfg, customer_messages[conv["ticket_id"]], conv["final_text"] or "")
+        resp = call_api(client=client, store=store, budget=budget, pricing=pricing, params=params, rep=0,
+                        kind="judge", cell=conv["cell_id"], call_index=0)
+        verdict = parse_verdict(resp)
+        store.log_judgment({"cell_id": conv["cell_id"], "judge_model": cfg.judge.model, "verdict": verdict,
+                            "ts": utc_now(), "dry_run": client.is_mock})
+        return verdict
+
+    with ThreadPoolExecutor(max_workers=max(1, concurrency)) as pool:
+        for fut in [pool.submit(work, c) for c in todo]:
+            try:
+                v = fut.result()
+            except BudgetExceeded as e:
+                stats["budget_stopped"], stats["message"] = True, str(e)
+                continue
+            stats["judged"] += 1
+            stats["parse_failures"] += v is None
+    return stats
