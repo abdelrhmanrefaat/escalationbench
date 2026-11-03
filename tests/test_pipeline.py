@@ -217,3 +217,11 @@ def test_committed_runs_contain_no_keys():
 def test_gitignore_covers_env():
     gi = (Path(__file__).resolve().parents[1] / ".gitignore").read_text().splitlines()
     assert ".env" in gi
+
+
+def test_prereg_template_marker_present_until_author_writes_it():
+    """The empty template must carry the marker that blocks confirmatory runs."""
+    from escalationbench.config import REPO_ROOT
+    p = REPO_ROOT / "PREREGISTRATION.md"
+    if p.exists() and "## 2. Hypotheses\n\n## 3." in p.read_text():
+        assert "PREREG-TEMPLATE" in p.read_text()

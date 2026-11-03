@@ -55,7 +55,16 @@ def check_confirmatory_allowed() -> dict:
     info = git_info()
     if not info["prereg_commit"]:
         raise SystemExit("Refusing confirmatory run: PREREGISTRATION.md has not been committed.")
-    diff = subprocess.run(["git", "diff", "--quiet", info["prereg_commit"], "--", "config/prompts", "config/experiment.yaml"],
+    committed = subprocess.run(["git", "show", f"{info['prereg_commit']}:PREREGISTRATION.md"], cwd=REPO_ROOT,
+                               capture_output=True, text=True).stdout
+    if "PREREG-TEMPLATE" in committed:
+        raise SystemExit("Refusing confirmatory run: the committed PREREGISTRATION.md is still the empty template.")
+    import yaml
+    plan = yaml.safe_load((REPO_ROOT / "config" / "analysis_plan.yaml").read_text())
+    if str(plan.get("status", "")).upper() == "DRAFT":
+        raise SystemExit("Refusing confirmatory run: config/analysis_plan.yaml is still DRAFT.")
+    diff = subprocess.run(["git", "diff", "--quiet", info["prereg_commit"], "--", "config/prompts", "config/experiment.yaml",
+                           "config/analysis_plan.yaml"],
                           cwd=REPO_ROOT)
     if diff.returncode != 0:
         raise SystemExit("Refusing confirmatory run: prompts or experiment config changed since the preregistration commit.")
