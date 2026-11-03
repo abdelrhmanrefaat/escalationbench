@@ -28,7 +28,7 @@ HUMAN_TARGET = re.compile(
     r"\b(specialist|human|team|supervisor|manager|colleague|senior|agent|representative|department|escalation)s?\b",
     re.I,
 )
-NEGATION = re.compile(r"\b(not|n't|cannot|can't|unable|won't|wouldn't|never|no longer)\b|n't\b", re.I)
+NEGATION = re.compile(r"\b(no|not|n't|cannot|can't|unable|won't|wouldn't|never|no longer)\b|n't\b", re.I)
 CONDITIONAL = re.compile(r"^\s*(if|should|in case|once|when)\b", re.I)
 
 ESC_PAST = re.compile(

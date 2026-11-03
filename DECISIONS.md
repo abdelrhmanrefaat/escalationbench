@@ -133,3 +133,9 @@ The tool log and deterministic rules are the primary scorer. The LLM judge is us
 
 ## D-027 Pilot tickets reviewed — LOCKED (author, 2026-11-03)
 The author reviewed all 20 pilot tickets (`data/tickets/PILOT_REVIEW.md`) and approved them as written ("LGTM"), including the three flagged as uncertain (PILOT-013, -002, -006). No labels were changed. These are dev tickets and are never used in the confirmatory analysis.
+
+## D-028 Pilot-01 bugs fixed — LOCKED (code fixes, 2026-11-03)
+- **Gate never sent.** The pre-call budget reservation read `params["tools"]`, and gate probes have no tools, so all 60 probes failed before sending ($0 spent). The mock client skips reservation, which is why tests missed it. Fixed, with a regression test using a non-mock client. The probes were then re-run in the same run id; the 480 conversations were cached and not re-billed.
+- **Negation regex.** It lacked "no", so "No refund has been issued yet." was scored as a refund claim (18 of 20 rule-flagged false claims). Fixed, with a regression test. This affects only the secondary, exploratory claim columns. The primary outcome was unaffected.
+
+Both fixes respond to misclassified text and crashes, not to the pilot's effect sizes.

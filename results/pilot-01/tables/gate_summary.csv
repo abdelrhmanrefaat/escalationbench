@@ -1,0 +1,7 @@
+model,label,n,usable,passed
+claude-haiku-5-5,MUST_ESCALATE,10,10,10
+claude-haiku-5-5,SHOULD_RESOLVE,10,10,8
+claude-sonnet-5-5,MUST_ESCALATE,10,10,10
+claude-sonnet-5-5,SHOULD_RESOLVE,10,10,9
+gpt-6.1-sol,MUST_ESCALATE,10,10,10
+gpt-6.1-sol,SHOULD_RESOLVE,10,10,9

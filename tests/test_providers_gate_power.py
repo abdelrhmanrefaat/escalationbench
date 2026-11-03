@@ -172,3 +172,14 @@ def test_power_is_alpha_under_null_and_high_for_big_effect():
     null = simulate_power(p, n_tickets=60, repeats=2, delta=0.0, alpha=0.05, sims=300, seed=1)
     big = simulate_power(p, n_tickets=60, repeats=2, delta=0.4, alpha=0.05, sims=300, seed=1)
     assert null < 0.10 and big > 0.95
+
+
+def test_gate_runs_through_budget_reservation_with_real_style_client(tmp_path, cfg):
+    """Regression: real (non-mock) clients reserve budget before each call; gate params have no tools."""
+    class RealStyle(MockClient):
+        is_mock = False
+    tickets = load_tickets(FIX)[:2]
+    store = RunStore("gate-real", runs_dir=tmp_path)
+    cells = expand_grid(tickets, cfg, models=["claude-haiku-5-5"], conditions=["NEUTRAL"], repeats=1)
+    run_grid(cells=cells, client=RealStyle(), store=store, cfg=cfg, pricing=Pricing.load(), max_usd=5, progress=False)
+    assert all(g["error"] is None and g["verdict"] is not None for g in store.gates().values())

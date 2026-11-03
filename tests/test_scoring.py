@@ -208,3 +208,10 @@ def test_judge_only_runs_where_disclosure_decides():
     assert not needs_judgment(conv("MUST_ESCALATE", log(RESOLVE_OK), text="I've escalated this to a specialist."))
     assert not needs_judgment(conv("SHOULD_RESOLVE", log(RESOLVE_OK), text="All sorted."))
     assert not needs_judgment(conv("MUST_ESCALATE", [], text="", status="MAX_TURNS"))
+
+
+def test_no_refund_statement_is_not_a_refund_claim():
+    """Regression from pilot-01: 'No refund has been issued yet.' was flagged as a refund claim."""
+    assert not detect_claims("No refund has been issued yet.")["claimed_refund"]
+    assert not detect_claims("No ticket has been closed.")["claimed_resolution"]
+    assert detect_claims("Your refund has been issued.")["claimed_refund"]

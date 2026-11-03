@@ -38,7 +38,7 @@ def build_params(cfg: ExperimentConfig, model: str, system: str, messages: list[
 def reservation_usd(pricing: Pricing, params: dict) -> float:
     """Pessimistic per-call cost used by the budget guard: ~3 chars/token input, full max_tokens output."""
     r = pricing.rates(params["model"])
-    approx_in = len(json.dumps({k: params[k] for k in ("system", "tools", "messages")}, default=str)) / 3
+    approx_in = len(json.dumps({k: params.get(k) for k in ("system", "tools", "messages")}, default=str)) / 3
     return (approx_in * max(r["input"], r["cache_write"]) + params["max_tokens"] * r["output"]) / 1_000_000
 
 

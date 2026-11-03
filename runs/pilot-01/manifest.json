@@ -1,0 +1,143 @@
+{
+  "run_id": "pilot-01",
+  "invocations": [
+    {
+      "ts": "2026-11-03T17:23:57.094+00:00",
+      "dry_run": false,
+      "max_usd": 18.0,
+      "n_cells_requested": 480,
+      "n_cells_todo": 480,
+      "config": {
+        "company_name": "Quillfern Home Goods",
+        "conditions": [
+          "NEUTRAL",
+          "INCENTIVE",
+          "PRESSURE",
+          "MITIGATION"
+        ],
+        "models": [
+          {
+            "id": "claude-sonnet-5-5",
+            "provider": "anthropic"
+          },
+          {
+            "id": "claude-haiku-5-5",
+            "provider": "anthropic"
+          },
+          {
+            "id": "gpt-6.1-sol",
+            "provider": "openai"
+          }
+        ],
+        "repeats": 4,
+        "max_turns": 6,
+        "max_tokens": 16000,
+        "effort": "medium",
+        "thinking_display": "summarized",
+        "gate": {
+          "enabled": true,
+          "max_tokens": 4000
+        },
+        "judge": {
+          "model": "claude-opus-5-5",
+          "effort": "medium",
+          "max_tokens": 4000
+        },
+        "concurrency": 8,
+        "splits": {
+          "seed": 20261103,
+          "dev_fraction": 0.3
+        },
+        "human_labels": {
+          "random_n": 100,
+          "enriched_n": 50,
+          "seed": 7
+        }
+      },
+      "prompt_hashes": {
+        "NEUTRAL": "24e1286c890793a407c3162d3cb65c44d1dbadcab7bcc37614149584ba5ed025",
+        "INCENTIVE": "2b3e8d953878b8d3a3fa8251bd008352ebe348949fcaa20321ca8f4c7414ea26",
+        "PRESSURE": "373ccc69939f03bff22ff0b7379316f5cb78883773446e1930678f084f6bd533",
+        "MITIGATION": "cb550351e768a210aa84cb6aa430d24f12f7915cf5477bef92d63e72acf395d4",
+        "GATE": "cf4996ae091b339675095026feebe4d63f59325371f45f3236a21ae3dcbf07e8"
+      },
+      "pricing_as_of": "2026-10-06",
+      "git": {
+        "commit": "d9473ab6c68f2c660aafcaa3e3c197b123261a5e",
+        "dirty": false,
+        "prereg_commit": null
+      },
+      "tickets_file": "data/tickets/pilot.jsonl",
+      "confirmatory": false
+    },
+    {
+      "ts": "2026-11-03T17:34:06.177+00:00",
+      "dry_run": false,
+      "max_usd": 18.0,
+      "n_cells_requested": 480,
+      "n_cells_todo": 0,
+      "config": {
+        "company_name": "Quillfern Home Goods",
+        "conditions": [
+          "NEUTRAL",
+          "INCENTIVE",
+          "PRESSURE",
+          "MITIGATION"
+        ],
+        "models": [
+          {
+            "id": "claude-sonnet-5-5",
+            "provider": "anthropic"
+          },
+          {
+            "id": "claude-haiku-5-5",
+            "provider": "anthropic"
+          },
+          {
+            "id": "gpt-6.1-sol",
+            "provider": "openai"
+          }
+        ],
+        "repeats": 4,
+        "max_turns": 6,
+        "max_tokens": 16000,
+        "effort": "medium",
+        "thinking_display": "summarized",
+        "gate": {
+          "enabled": true,
+          "max_tokens": 4000
+        },
+        "judge": {
+          "model": "claude-opus-5-5",
+          "effort": "medium",
+          "max_tokens": 4000
+        },
+        "concurrency": 8,
+        "splits": {
+          "seed": 20261103,
+          "dev_fraction": 0.3
+        },
+        "human_labels": {
+          "random_n": 100,
+          "enriched_n": 50,
+          "seed": 7
+        }
+      },
+      "prompt_hashes": {
+        "NEUTRAL": "24e1286c890793a407c3162d3cb65c44d1dbadcab7bcc37614149584ba5ed025",
+        "INCENTIVE": "2b3e8d953878b8d3a3fa8251bd008352ebe348949fcaa20321ca8f4c7414ea26",
+        "PRESSURE": "373ccc69939f03bff22ff0b7379316f5cb78883773446e1930678f084f6bd533",
+        "MITIGATION": "cb550351e768a210aa84cb6aa430d24f12f7915cf5477bef92d63e72acf395d4",
+        "GATE": "cf4996ae091b339675095026feebe4d63f59325371f45f3236a21ae3dcbf07e8"
+      },
+      "pricing_as_of": "2026-10-06",
+      "git": {
+        "commit": "d9473ab6c68f2c660aafcaa3e3c197b123261a5e",
+        "dirty": true,
+        "prereg_commit": null
+      },
+      "tickets_file": "data/tickets/pilot.jsonl",
+      "confirmatory": false
+    }
+  ]
+}
