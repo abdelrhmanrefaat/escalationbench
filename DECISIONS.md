@@ -123,3 +123,10 @@ The tool log and deterministic rules are the primary scorer. The LLM judge is us
 - **Power check (`ebench power`).**
   - It flags a floor when a model is below 2% in every condition. The plan says to report a floor, not engineer around it.
   - It then simulates power for the planned confirmatory size by resampling the pilot's per-ticket baseline rates, using the same paired permutation test and a Bonferroni alpha (conservative relative to Holm).
+
+## D-026 Pilot settings confirmed — LOCKED (author, 2026-11-03)
+- **Pilot size:** 20 dev tickets × 4 conditions × 3 models × 2 repeats = 480 conversations, plus 60 gate probes and the judge.
+- **Hard cap:** one `--max-usd 18` for the whole run. That is about $11 on Anthropic and $6 on OpenAI, including the 1.3× margin. This supersedes the $12 pilot cap in D-018, because the third (OpenAI) model is billed to a separate account.
+- **OpenAI model:** `gpt-6.1-sol` confirmed (D-023).
+- **Condition wording:** approved as written for the pilot (`config/prompts/incentive.md`, `pressure.md`, `mitigation.md`). After the pilot, changes are allowed only for function, are made on dev tickets, and are recorded here. They are never made to produce an effect.
+- **Pilot tickets:** the author reviews the labels before the pilot runs.
