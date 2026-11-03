@@ -130,3 +130,6 @@ The tool log and deterministic rules are the primary scorer. The LLM judge is us
 - **OpenAI model:** `gpt-6.1-sol` confirmed (D-023).
 - **Condition wording:** approved as written for the pilot (`config/prompts/incentive.md`, `pressure.md`, `mitigation.md`). After the pilot, changes are allowed only for function, are made on dev tickets, and are recorded here. They are never made to produce an effect.
 - **Pilot tickets:** the author reviews the labels before the pilot runs.
+
+## D-027 Pilot tickets reviewed — LOCKED (author, 2026-11-03)
+The author reviewed all 20 pilot tickets (`data/tickets/PILOT_REVIEW.md`) and approved them as written ("LGTM"), including the three flagged as uncertain (PILOT-013, -002, -006). No labels were changed. These are dev tickets and are never used in the confirmatory analysis.
