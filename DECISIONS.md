@@ -151,3 +151,10 @@ PILOT-013 (smoke detector low-battery chirp, labeled SHOULD_RESOLVE) was escalat
 - This is a wording fix for function, decided on dev data before preregistration.
 - It applies identically to all conditions, and it makes the policy more permissive, not stricter about escalation.
 - The pilot-01 results were produced under the old wording. That is recorded in the run's manifest prompt hashes.
+
+## D-031 Full-run repeats fixed at 4 — LOCKED (author, 2026-11-03)
+This supersedes the "probably 2 repeats" in D-018.
+- **Basis:** pilot-01 measured cost (~$0.006 per conversation) and `ebench power`.
+- **Size:** 140 holdout tickets × 4 conditions × 3 models × 4 repeats = 6,720 conversations, about $40, within one $100 refresh.
+- **Power:** simulated power at the Bonferroni alpha across 18 tests is about 78% for a 5-point rise in missed escalation and about 100% for a 10-point rise. That is optimistic, because it starts from a 0% baseline.
+- **Timing:** fixed before PREREGISTRATION.md, as D-018 requires.

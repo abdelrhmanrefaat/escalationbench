@@ -12,7 +12,7 @@ models:
   - {id: claude-haiku-5-5, provider: anthropic}
   - {id: gpt-6.1-sol, provider: openai}     # D-023; priced like Sonnet 5.5 ($2/$10 per 1M). Swap here if needed.
 
-repeats: 4            # samples per ticket x condition x model (sized to the ~$200 credit; final value set after pilot, before prereg)
+repeats: 4            # D-031: fixed from pilot-01 cost and power, before preregistration
 max_turns: 6          # max API calls per conversation (tool loop cap)
 max_tokens: 16000     # per API call
 
