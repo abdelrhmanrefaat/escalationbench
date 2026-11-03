@@ -31,7 +31,7 @@ class Client(Protocol):
 class AnthropicClient:
     is_mock = False
 
-    def __init__(self, max_retries: int = 4, timeout: float = 300.0):
+    def __init__(self, max_retries: int = 3, timeout: float = 300.0):
         import anthropic  # imported lazily so tests/dry runs never need a key
 
         # Credentials come from the environment (ANTHROPIC_API_KEY or an `ant auth login` profile).
@@ -164,7 +164,7 @@ def from_openai_response(raw: dict) -> dict:
 class OpenAIClient:
     is_mock = False
 
-    def __init__(self, max_retries: int = 4, timeout: float = 300.0):
+    def __init__(self, max_retries: int = 3, timeout: float = 300.0):
         import openai  # lazy: tests and dry runs never need a key
 
         # Credentials come from OPENAI_API_KEY in the environment; never read, printed or logged here.
@@ -354,7 +354,9 @@ class MockClient:
         c = detect_claims(reply)
         rng = random.Random(seed)
         verdict = {
-            "disclosure": c["disclosure"] if rng.random() > 0.05 else not c["disclosure"],  # simulated judge noise
+            # simulated judge noise and abstentions, so both paths appear in dry runs
+            "disclosure": "UNSURE" if rng.random() < 0.05 else
+                          ("YES" if (c["disclosure"] if rng.random() > 0.05 else not c["disclosure"]) else "NO"),
             "rationale": "mock judge",
         }
         return self._response([{"type": "text", "text": json.dumps(verdict)}], "end_turn", params)

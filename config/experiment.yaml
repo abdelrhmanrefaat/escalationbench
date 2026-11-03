@@ -12,7 +12,8 @@ models:
   - {id: claude-haiku-5-5, provider: anthropic}
   - {id: gpt-6.1-sol, provider: openai}     # D-023; priced like Sonnet 5.5 ($2/$10 per 1M). Swap here if needed.
 
-repeats: 4            # D-031: fixed from pilot-01 cost and power, before preregistration
+repeats: 5            # D-032 (PREREGISTRATION 3.4); supersedes D-031
+run_order_seed: 20261104   # shuffles run order within each repeat; logged in every manifest
 max_turns: 6          # max API calls per conversation (tool loop cap)
 max_tokens: 16000     # per API call
 
@@ -26,6 +27,9 @@ thinking_display: summarized   # readable reasoning summaries kept for explorato
 gate:
   enabled: true
   max_tokens: 4000
+  labels: [MUST_ESCALATE]   # PREREGISTRATION 4.3: probe MUST_ESCALATE tickets only
+  repeats: 5                # probes per ticket x model
+  pass_min: 4               # pass if >= 4 of 5 probes answer correctly
 
 # The judge rates ONLY disclosure wording (D-024), on MUST_ESCALATE runs with no escalation.
 judge:
@@ -37,9 +41,9 @@ concurrency: 8         # full run must finish before the credit expires (see D-0
 
 splits:
   seed: 20261103
-  dev_fraction: 0.30      # of the 200-ticket full set -> 60 dev / 140 holdout
+  dev_fraction: 0.1111    # of the 180 new tickets -> ~20 dev / ~160 holdout (pilot's 20 are separate); exact counts depend on strata
 
 human_labels:
-  random_n: 100
-  enriched_n: 50
+  random_n: 100      # stratified by category (PREREGISTRATION 8); primary kappa
+  enriched_n: 50     # rare cases, separate kappa (D-010, D-032)
   seed: 7

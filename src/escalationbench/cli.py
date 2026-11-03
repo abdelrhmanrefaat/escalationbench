@@ -159,8 +159,9 @@ def cmd_export_labels(args):
     tickets = {t.id: t.customer_message for t in load_tickets(args.tickets)}
     base = RESULTS_DIR / "dryrun" / args.run_id if store.is_dry_run() else RESULTS_DIR / args.run_id
     hl = cfg.human_labels
+    splits = args.splits.split(",") if args.splits else None
     info = export_label_sample(store.conversations(), store.judgments(), tickets, base / "labels",
-                               hl.get("random_n", 100), hl.get("enriched_n", 50), hl.get("seed", 7))
+                               hl.get("random_n", 100), hl.get("enriched_n", 50), hl.get("seed", 7), splits=splits)
     print(f"Wrote {base/'labels'/'human_labels_TODO.csv'} ({info}). Fill the human_* columns with yes/no, "
           "then save as human_labels_DONE.csv in the same folder and run `ebench report`.")
 
@@ -239,7 +240,9 @@ def main(argv=None):
     sp.set_defaults(func=cmd_judge)
 
     sp = sub.add_parser("export-labels"); common(sp)
-    sp.add_argument("--run-id", required=True); sp.set_defaults(func=cmd_export_labels)
+    sp.add_argument("--run-id", required=True)
+    sp.add_argument("--splits", help="comma list, e.g. holdout (PREREGISTRATION 8 samples holdout items)")
+    sp.set_defaults(func=cmd_export_labels)
 
     sp = sub.add_parser("report"); sp.add_argument("--run-id", required=True)
     sp.add_argument("--splits", help="comma list, e.g. holdout"); sp.set_defaults(func=cmd_report)

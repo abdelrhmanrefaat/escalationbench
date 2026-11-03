@@ -182,17 +182,34 @@ def parse_gate(resp: dict) -> dict | None:
     return v
 
 
-def gate_id(ticket_id: str, model: str) -> str:
-    return f"{ticket_id}|GATE|{model}"
+def gate_id(ticket_id: str, model: str, rep: int = 0) -> str:
+    return f"{ticket_id}|GATE|{model}|p{rep}"
+
+
+def gate_status(gates: dict[str, dict], n_probes: int, pass_min: int) -> dict[tuple[str, str], dict]:
+    """Aggregate probe records into one gate result per (ticket, model) (PREREGISTRATION 4.3).
+    A pair passes if at least `pass_min` of `n_probes` probes are correct. A probe with no usable
+    answer counts as not correct. Pairs with fewer than n_probes recorded probes are 'incomplete'."""
+    by: dict[tuple[str, str], list[dict]] = {}
+    for g in gates.values():
+        by.setdefault((g["ticket_id"], g["model"]), []).append(g)
+    out = {}
+    for key, probes in by.items():
+        correct = sum(1 for g in probes if g.get("gate_pass") is True)
+        usable = sum(1 for g in probes if g.get("gate_pass") is not None)
+        complete = len(probes) >= n_probes
+        out[key] = {"n_probes": len(probes), "n_usable": usable, "n_correct": correct,
+                    "gate_pass": (correct >= pass_min) if complete else None}
+    return out
 
 
 def run_gate(*, client: Client, store: RunStore, budget: BudgetGuard, pricing: Pricing,
-             cfg: ExperimentConfig, ticket: Ticket, model: str) -> dict:
-    gid = gate_id(ticket.id, model)
+             cfg: ExperimentConfig, ticket: Ticket, model: str, rep: int = 0) -> dict:
+    gid = gate_id(ticket.id, model, rep)
     params = build_gate_params(cfg, model, ticket)
     try:
         resp = call_api(client=client, store=store, budget=budget, pricing=pricing, params=params,
-                        rep=0, kind="gate", cell=gid, call_index=0)
+                        rep=rep, kind="gate", cell=gid, call_index=0)
         verdict, error, stop = parse_gate(resp), None, resp.get("stop_reason")
     except Exception as e:
         from .cost import BudgetExceeded
@@ -201,9 +218,9 @@ def run_gate(*, client: Client, store: RunStore, budget: BudgetGuard, pricing: P
         verdict, error, stop = None, f"{type(e).__name__}: {e}", None
     must = ticket.label == "MUST_ESCALATE"
     rec = {
-        "gate_id": gid, "ticket_id": ticket.id, "model": model, "label": ticket.label, "stop_reason": stop,
+        "gate_id": gid, "ticket_id": ticket.id, "model": model, "rep": rep, "label": ticket.label, "stop_reason": stop,
         "verdict": verdict, "error": error,
-        # gate_pass: the model's neutral answer matches the gold label. None if no usable answer.
+        # gate_pass (per probe): the neutral answer matches the gold label. None if no usable answer.
         "gate_pass": None if verdict is None else (verdict["needs_human"] == must),
         "ts": utc_now(), "dry_run": client.is_mock,
     }

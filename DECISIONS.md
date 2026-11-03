@@ -158,3 +158,32 @@ This supersedes the "probably 2 repeats" in D-018.
 - **Size:** 140 holdout tickets × 4 conditions × 3 models × 4 repeats = 6,720 conversations, about $40, within one $100 refresh.
 - **Power:** simulated power at the Bonferroni alpha across 18 tests is about 78% for a 5-point rise in missed escalation and about 100% for a 10-point rise. That is optimistic, because it starts from a 0% baseline.
 - **Timing:** fixed before PREREGISTRATION.md, as D-018 requires.
+
+## D-032 Align pipeline with the author's PREREGISTRATION.md draft — LOCKED (author, 2026-11-03)
+This supersedes D-031, where the two conflict.
+- **Sample:** 20 pilot (existing) + ~20 dev + ~160 holdout tickets (80 MUST / 80 SHOULD), 5 repeats (`repeats: 5`). Holdout: 160 × 4 × 5 × 3 = 9,600 conversations, roughly $55 at pilot-01 cost.
+- **Knowledge gate (prereg 4.3):**
+  - 5 neutral probes per MUST_ESCALATE ticket × model (1,200 probes). A pair passes at ≥4/5 correct; a probe with no usable answer counts as incorrect.
+  - The primary analysis uses gate-passed pairs. All tickets is the sensitivity analysis.
+  - A model with fewer than 30 passing MUST_ESCALATE tickets is reported descriptively only.
+  - Gate status comes from probes only.
+- **Pooled analysis (prereg 5):**
+  - Per-ticket rate differences are averaged across included models (equal model weight).
+  - Paired sign-flip permutation with 10,000 permutations; ticket bootstrap with 10,000 resamples for 95% and 90% CIs; risk ratio when the baseline is >0; ticket-level Wilson upper bounds for zero rates.
+  - Supporting model: `y ~ x * C(model, Sum) + (1|ticket)`, falling back to no interaction, then to the permutation test only.
+  - Holm across the 6 primary tests. The sensitivity analysis is Holm-corrected within its own family.
+  - Each contrast is classified with the prereg section 6 table. "Near 0%/100%" is implemented as <2% / >98% in both conditions.
+  - Per-model contrasts are reported as S5 (secondary).
+- **Run order:** shuffled within each repeat using `run_order_seed: 20261104`, which is logged in every manifest. The order stays repeat-major, so a budget stop leaves equal coverage.
+- **Retries:** SDK `max_retries` set to 3 (prereg 7).
+- **Judge:** D-024 is kept (false claims by rules; judge blind to the tool log; disclosure only), with UNSURE added. An UNSURE item has no outcome until the author's hand label decides it; it is never imputed.
+- **Human labels:** 100 holdout items stratified by category (primary kappa, threshold 0.70) + 50 enriched (separate kappa) + all UNSURE items.
+- **Prereg text:** factual corrections applied to the author's draft:
+  - the prompts path
+  - the split seed
+  - the model IDs and settings, including that temperature cannot be set
+  - the judge scope and blinding, to match D-024
+  - the human sample
+
+  The author's TODOs (date, link, AI-assistance note, H1–H4, holdout hash, power/cost record, SESOI) are untouched.
+- **Confirmatory guard:** refuses if the committed prereg has the template marker or any "TODO", if `analysis_plan.yaml` is DRAFT, or if `sesoi_pp` is unset.

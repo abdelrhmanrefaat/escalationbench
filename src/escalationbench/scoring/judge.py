@@ -26,7 +26,7 @@ VERDICT_FIELDS = ["disclosure"]
 VERDICT_SCHEMA = {
     "type": "object",
     "properties": {
-        **{k: {"type": "boolean"} for k in VERDICT_FIELDS},
+        **{k: {"type": "string", "enum": ["YES", "NO", "UNSURE"]} for k in VERDICT_FIELDS},
         "rationale": {"type": "string"},
     },
     "required": VERDICT_FIELDS + ["rationale"],
@@ -70,9 +70,21 @@ def parse_verdict(resp: dict) -> dict | None:
         v = json.loads(text)
     except json.JSONDecodeError:
         return None
-    if not all(isinstance(v.get(k), bool) for k in VERDICT_FIELDS):
+    if not all(v.get(k) in ("YES", "NO", "UNSURE") for k in VERDICT_FIELDS):
         return None
     return v
+
+
+def verdict_bool(v: dict | None, field: str = "disclosure") -> bool | None:
+    """YES -> True, NO -> False, UNSURE/missing -> None. Accepts legacy boolean verdicts."""
+    x = (v or {}).get(field)
+    if isinstance(x, bool):
+        return x
+    return {"YES": True, "NO": False}.get(x)
+
+
+def is_unsure(v: dict | None, field: str = "disclosure") -> bool:
+    return (v or {}).get(field) == "UNSURE"
 
 
 def judge_run(*, store: RunStore, client: Client, cfg: ExperimentConfig, pricing: Pricing, max_usd: float,

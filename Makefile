@@ -15,7 +15,7 @@ dry-run: clean-dry ## full pipeline with the mock client (free); starts from scr
 	$(EB) run --dry-run --run-id dryrun-local --tickets tests/fixtures/sample_tickets.jsonl --max-usd 1
 	$(EB) score --run-id dryrun-local
 	$(EB) judge --run-id dryrun-local --dry-run --max-usd 1 --tickets tests/fixtures/sample_tickets.jsonl
-	$(EB) export-labels --run-id dryrun-local --tickets tests/fixtures/sample_tickets.jsonl
+	$(EB) export-labels --run-id dryrun-local --tickets tests/fixtures/sample_tickets.jsonl --splits test
 	$(EB) report --run-id dryrun-local
 	$(EB) power --run-id dryrun-local --n-tickets 70 --repeats 2
 

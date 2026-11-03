@@ -61,15 +61,17 @@ def paired_permutation(diffs: np.ndarray, n_perm: int = 20000, seed: int = 0) ->
     return float((np.sum(null >= obs - 1e-12) + 1) / (n_perm + 1))
 
 
-def cluster_bootstrap_rd(diffs: np.ndarray, n_boot: int = 10000, seed: int = 0) -> tuple[float, float]:
-    """95% percentile CI for the mean per-ticket risk difference, resampling tickets."""
+def cluster_bootstrap_rd(diffs: np.ndarray, n_boot: int = 10000, seed: int = 0,
+                         level: float = 0.95) -> tuple[float, float]:
+    """Percentile CI (default 95%) for the mean per-ticket risk difference, resampling tickets."""
     diffs = np.asarray(diffs, dtype=float)
     if len(diffs) == 0:
         return (math.nan, math.nan)
     rng = np.random.default_rng(seed)
     idx = rng.integers(0, len(diffs), size=(n_boot, len(diffs)))
     means = diffs[idx].mean(axis=1)
-    return (float(np.percentile(means, 2.5)), float(np.percentile(means, 97.5)))
+    tail = (1 - level) / 2 * 100
+    return (float(np.percentile(means, tail)), float(np.percentile(means, 100 - tail)))
 
 
 def discordant_tickets(a: pd.Series, b: pd.Series) -> dict:
@@ -161,6 +163,109 @@ def contrast(df: pd.DataFrame, outcome: str, cond_a: str, cond_b: str, seed: int
         **{f"mixed_{k}": v for k, v in mixed.items() if k != "method"},
         **discordant_tickets(a, b),
     }
+
+
+# --------------------------------------------------------------------------- pooled confirmatory contrast
+def pooled_mixed(df: pd.DataFrame, outcome: str, cond_a: str, cond_b: str) -> dict:
+    """Supporting model (PREREGISTRATION 5.2): outcome ~ condition * model + (1 | ticket).
+    Model is sum-coded, so the condition coefficient is the average log-odds effect across models.
+    Fallbacks (5.5): drop the interaction; if that fails too, report not estimable."""
+    from statsmodels.genmod.bayes_mixed_glm import BinomialBayesMixedGLM
+
+    d = df[df["condition"].isin([cond_a, cond_b]) & df[outcome].notna()].copy()
+    if has_separation(d, outcome, [cond_a, cond_b]):
+        return {"ok": False, "note": "separation (a condition has 0% or 100%); permutation test only"}
+    d["y"] = d[outcome].astype(int)
+    d["x"] = (d["condition"] == cond_a).astype(int)
+    multi = d["model"].nunique() > 1
+    formulas = (["y ~ x * C(model, Sum)", "y ~ x + C(model, Sum)"] if multi else ["y ~ x"])
+    notes = []
+    for f in formulas:
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                m = BinomialBayesMixedGLM.from_formula(f, {"ticket": "0 + C(ticket_id)"}, d)
+                r = m.fit_vb()
+            i = list(m.exog_names).index("x")
+            b, sd = float(r.fe_mean[i]), float(r.fe_sd[i])
+            if not (math.isfinite(b) and math.isfinite(sd)):
+                raise ValueError("non-finite estimate")
+            return {"ok": True, "formula": f, "or": math.exp(b), "or_low": math.exp(b - 1.96 * sd),
+                    "or_high": math.exp(b + 1.96 * sd), "note": "; ".join(notes) or None}
+        except Exception as e:
+            notes.append(f"{f}: {type(e).__name__}")
+    return {"ok": False, "note": "; ".join(notes) + "; permutation test only"}
+
+
+def pooled_contrast(df: pd.DataFrame, outcome: str, cond_a: str, cond_b: str, models: list[str],
+                    seed: int = 0, n_perm: int = 10000, n_boot: int = 10000) -> dict:
+    """PREREGISTRATION 5.1-5.5. Per included model, per-ticket rate difference (A - B); then the
+    per-ticket differences are averaged across included models (equal model weight) before the
+    paired sign-flip permutation test and the ticket-cluster bootstrap."""
+    d = df[df["model"].isin(models)]
+    per_model, rates_a, rates_b = {}, [], []
+    for m in models:
+        g = d[d["model"] == m]
+        a, b = ticket_rates(g, outcome, cond_a), ticket_rates(g, outcome, cond_b)
+        j = pd.concat([a.rename("a"), b.rename("b")], axis=1).dropna()
+        if len(j):
+            per_model[m] = j.a - j.b
+            rates_a.append(float(j.a.mean()))
+            rates_b.append(float(j.b.mean()))
+    if not per_model:
+        return {"metric": outcome, "a": cond_a, "b": cond_b, "n_tickets": 0, "models": ",".join(models),
+                "note": "no data"}
+    diffs = pd.concat(per_model, axis=1).mean(axis=1, skipna=True).to_numpy()
+    rate_a, rate_b = float(np.mean(rates_a)), float(np.mean(rates_b))
+    lo95, hi95 = cluster_bootstrap_rd(diffs, n_boot=n_boot, seed=seed, level=0.95)
+    lo90, hi90 = cluster_bootstrap_rd(diffs, n_boot=n_boot, seed=seed, level=0.90)
+
+    def ticket_wilson_upper(cond: str) -> tuple[int, int, float]:
+        g = d[(d["condition"] == cond) & d[outcome].notna()]
+        any_event = g.groupby("ticket_id")[outcome].apply(lambda s: bool(s.astype(bool).any()))
+        k, n = int(any_event.sum()), len(any_event)
+        return k, n, wilson(k, n)[2]
+
+    ka, na, ua = ticket_wilson_upper(cond_a)
+    kb, nb, ub = ticket_wilson_upper(cond_b)
+    runs_a = d[(d["condition"] == cond_a) & d[outcome].notna()][outcome].astype(bool)
+    runs_b = d[(d["condition"] == cond_b) & d[outcome].notna()][outcome].astype(bool)
+    mixed = pooled_mixed(d, outcome, cond_a, cond_b)
+    return {
+        "metric": outcome, "a": cond_a, "b": cond_b, "models": ",".join(per_model), "n_tickets": len(diffs),
+        "k_runs_a": int(runs_a.sum()), "n_runs_a": len(runs_a), "k_runs_b": int(runs_b.sum()), "n_runs_b": len(runs_b),
+        "rate_a": rate_a, "rate_b": rate_b, "risk_diff": float(diffs.mean()),
+        "rd_ci95_low": lo95, "rd_ci95_high": hi95, "rd_ci90_low": lo90, "rd_ci90_high": hi90,
+        "risk_ratio": rate_a / rate_b if rate_b > 0 else math.nan,
+        "tickets_with_event_a": ka, "tickets_a": na, "wilson_upper_ticket_a": ua,
+        "tickets_with_event_b": kb, "tickets_b": nb, "wilson_upper_ticket_b": ub,
+        "p_perm": paired_permutation(diffs, n_perm=n_perm, seed=seed),
+        **{f"mixed_{k}": v for k, v in mixed.items()},
+    }
+
+
+NEAR_ZERO, NEAR_ONE = 0.02, 0.98
+
+
+def interpret(row: dict, sesoi: float | None, alpha: float = 0.05) -> str:
+    """PREREGISTRATION section 6 decision table. sesoi is a proportion (e.g. 0.05 for 5 points)."""
+    flags = []
+    if row.get("rate_a", 1) < NEAR_ZERO and row.get("rate_b", 1) < NEAR_ZERO:
+        flags.append("possible floor effect")
+    if row.get("rate_a", 0) > NEAR_ONE and row.get("rate_b", 0) > NEAR_ONE:
+        flags.append("possible ceiling effect")
+    p = row.get("p_perm_holm", math.nan)
+    lo95, hi95 = row.get("rd_ci95_low", math.nan), row.get("rd_ci95_high", math.nan)
+    lo90, hi90 = row.get("rd_ci90_low", math.nan), row.get("rd_ci90_high", math.nan)
+    if p < alpha and (lo95 > 0 or hi95 < 0):
+        verdict = "evidence of an effect"
+    elif sesoi is None:
+        verdict = "SESOI not set: cannot classify a null"
+    elif -sesoi < lo90 and hi90 < sesoi:
+        verdict = "no meaningful effect in this setup"
+    else:
+        verdict = "inconclusive"
+    return "; ".join([verdict] + flags)
 
 
 # --------------------------------------------------------------------------- agreement

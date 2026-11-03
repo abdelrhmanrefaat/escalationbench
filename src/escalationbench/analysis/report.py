@@ -27,8 +27,8 @@ import yaml  # noqa: E402
 from ..config import CONFIG_DIR, REPO_ROOT  # noqa: E402
 from ..rawlog import RunStore  # noqa: E402
 from ..scoring.rules import score_conversation  # noqa: E402
-from .kappa import agreement_table  # noqa: E402
-from .stats import contrast, holm, rate_table  # noqa: E402
+from .kappa import agreement_table, human_disclosure_labels  # noqa: E402
+from .stats import contrast, holm, interpret, pooled_contrast, rate_table  # noqa: E402
 
 RESULTS_DIR = REPO_ROOT / "results"
 COND_ORDER = ["NEUTRAL", "INCENTIVE", "PRESSURE", "MITIGATION"]
@@ -40,10 +40,15 @@ def load_analysis_plan(path: Path = CONFIG_DIR / "analysis_plan.yaml") -> dict:
     return yaml.safe_load(path.read_text())
 
 
-def build_scored(store: RunStore, splits: list[str] | None = None) -> pd.DataFrame:
-    from ..agent import gate_id
-    judgments, gates = store.judgments(), store.gates()
-    rows = [score_conversation(c, judgments.get(c["cell_id"]), gates.get(gate_id(c["ticket_id"], c["model"])))
+def build_scored(store: RunStore, splits: list[str] | None = None, cfg=None,
+                 human_disclosure: dict[str, bool] | None = None) -> pd.DataFrame:
+    from ..agent import gate_status
+    from ..config import ExperimentConfig
+    cfg = cfg or ExperimentConfig.load()
+    status = gate_status(store.gates(), int(cfg.gate.get("repeats", 1)), int(cfg.gate.get("pass_min", 1)))
+    judgments = store.judgments()
+    rows = [score_conversation(c, judgments.get(c["cell_id"]), status.get((c["ticket_id"], c["model"])),
+                               (human_disclosure or {}).get(c["cell_id"]))
             for c in store.conversations()]
     df = pd.DataFrame(rows)
     if splits and len(df):
@@ -89,25 +94,64 @@ def all_rates(df: pd.DataFrame) -> pd.DataFrame:
     return pd.concat(out, ignore_index=True) if out else pd.DataFrame()
 
 
-def confirmatory(df: pd.DataFrame, plan: dict) -> pd.DataFrame:
+def confirmatory(df: pd.DataFrame, plan: dict) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """PREREGISTRATION 4.3 and 5. Returns (confirmatory family, per-model secondary contrasts S5).
+
+    primary     : MUST_ESCALATE runs on gate-passed (ticket, model) pairs; models with fewer than
+                  `min_gate_tickets` passing tickets are reported descriptively only. Holm across
+                  the preregistered family (2 metrics x 3 contrasts = 6 tests).
+    sensitivity : all MUST_ESCALATE tickets, all models; Holm within its own family; labelled.
+    """
     frames = _metric_frames(df)
+    seed, n_perm, n_boot = plan.get("seed", 0), plan.get("n_perm", 10000), plan.get("n_boot", 10000)
+    sesoi = plan.get("sesoi_pp")
+    sesoi = None if sesoi in (None, "", "TODO") else float(sesoi) / 100.0
+    min_gate = int(plan.get("min_gate_tickets", 30))
+    must = df[(df["label"] == "MUST_ESCALATE") & (df["status"] != "API_ERROR")]
+    passed = must[must["gate_pass"] == True]  # noqa: E712
+    gate_counts = passed.groupby("model")["ticket_id"].nunique() if len(passed) else pd.Series(dtype=int)
+    all_models = sorted(df["model"].unique())
+    primary_models = [m for m in all_models if gate_counts.get(m, 0) >= min_gate]
+
     rows = []
+    for analysis, models, gate_only in (("primary", primary_models, True), ("sensitivity", all_models, False)):
+        for spec in plan["primary_family"]:
+            metric = spec["metric"]
+            if metric not in frames:
+                raise KeyError(f"analysis_plan metric {metric!r} is not computed; known: {sorted(frames)}")
+            frame, col = frames[metric]
+            if gate_only:
+                frame = frame[frame["gate_pass"] == True]  # noqa: E712
+            for a, b in spec["contrasts"]:
+                if not models:
+                    rows.append({"analysis": analysis, "metric": metric, "a": a, "b": b, "n_tickets": 0,
+                                 "note": f"no model has >= {min_gate} gate-passed MUST_ESCALATE tickets"})
+                    continue
+                r = pooled_contrast(frame, col, a, b, models, seed=seed, n_perm=n_perm, n_boot=n_boot)
+                rows.append({"analysis": analysis, **r, "metric": metric,
+                             "models_excluded": ",".join(m for m in all_models if m not in models)})
+    t = pd.DataFrame(rows)
+    if not t.empty and "p_perm" in t:
+        t["p_perm_holm"] = float("nan")
+        for analysis in ("primary", "sensitivity"):
+            idx = t.index[t["analysis"] == analysis]
+            t.loc[idx, "p_perm_holm"] = holm(t.loc[idx, "p_perm"].tolist())
+        t["interpretation"] = [interpret(r, sesoi) if pd.notna(r.get("p_perm")) else r.get("note")
+                               for r in t.to_dict("records")]
+        t["sesoi_pp"] = None if sesoi is None else sesoi * 100
+
+    per_model = []
     for spec in plan["primary_family"]:
-        metric = spec["metric"]
-        if metric not in frames:
-            raise KeyError(f"analysis_plan metric {metric!r} is not computed; known: {sorted(frames)}")
-        frame, col = frames[metric]
-        for model in sorted(df["model"].unique()):
+        frame, col = frames[spec["metric"]]
+        frame = frame[frame["gate_pass"] == True]  # noqa: E712
+        for model in all_models:
             f = frame[frame["model"] == model]
-            if f.empty or f[col].notna().sum() == 0:
+            if f.empty:
                 continue
             for a, b in spec["contrasts"]:
-                r = contrast(f, col, a, b, seed=plan.get("seed", 0))
-                rows.append({"model": model, **r, "metric": metric})
-    t = pd.DataFrame(rows)
-    if not t.empty:
-        t["p_perm_holm"] = holm(t["p_perm"].tolist())
-    return t
+                per_model.append({"analysis": "S5 per-model (secondary, gate-passed)", "model": model,
+                                  **contrast(f, col, a, b, seed=seed), "metric": spec["metric"]})
+    return t, pd.DataFrame(per_model)
 
 
 def exploratory(df: pd.DataFrame, out_dir: Path) -> None:
@@ -196,7 +240,9 @@ def generate(run_id: str, splits: list[str] | None = None, labels_dir: Path | No
     tables.mkdir(parents=True, exist_ok=True)
     watermark = "MOCK DATA" if mock else None
 
-    df = build_scored(store, splits)
+    labels_dir = labels_dir or out / "labels"
+    human = human_disclosure_labels(labels_dir / "human_labels_DONE.csv", labels_dir / "human_labels_key.csv")
+    df = build_scored(store, splits, human_disclosure=human)
     df.to_csv(out / "scored.csv", index=False)
     status = df.groupby(["model", "condition", "status"]).size().rename("n").reset_index() if len(df) else pd.DataFrame()
     status.to_csv(tables / "status_counts.csv", index=False)
@@ -218,12 +264,12 @@ def generate(run_id: str, splits: list[str] | None = None, labels_dir: Path | No
     rates = all_rates(df)
     rates.to_csv(tables / "rates.csv", index=False)
     plan = load_analysis_plan()
-    conf = confirmatory(df, plan) if len(df) else pd.DataFrame()
+    conf, per_model = confirmatory(df, plan) if len(df) else (pd.DataFrame(), pd.DataFrame())
     conf.to_csv(tables / "confirmatory_contrasts.csv", index=False)
+    per_model.to_csv(tables / "secondary_per_model_contrasts.csv", index=False)
     exploratory(df, tables / "exploratory")
 
     agree = pd.DataFrame()
-    labels_dir = labels_dir or out / "labels"
     if (labels_dir / "human_labels_DONE.csv").exists():
         agree = agreement_table(labels_dir / "human_labels_DONE.csv", labels_dir / "human_labels_key.csv",
                                 store.judgments(), {c["cell_id"]: c for c in store.conversations()})
@@ -246,17 +292,26 @@ def generate(run_id: str, splits: list[str] | None = None, labels_dir: Path | No
     md.append(_md_table(outcome_counts, list(outcome_counts.columns)) if len(outcome_counts) else "_none_\n")
     md.append("\n## Rates with Wilson 95% CIs\n")
     md.append(_md_table(rates, ["metric", "model", "condition", "k", "n", "n_tickets", "rate", "ci_low", "ci_high"]) if len(rates) else "_none_\n")
-    md.append("\n## Confirmatory contrasts (preregistered family only; Holm-adjusted)\n")
-    md.append("Risk difference = mean over tickets of (rate in A − rate in B); CI by ticket bootstrap; "
-              "p from paired sign-flip permutation; OR from GEE clustered by ticket and from a Bayesian mixed model.\n\n")
-    if len(conf):
-        md.append(_md_table(conf, ["model", "metric", "a", "b", "n_tickets", "rate_a", "rate_b", "risk_diff",
-                                   "rd_ci_low", "rd_ci_high", "p_perm", "p_perm_holm"]))
-        notes = conf[[c for c in conf.columns if c.endswith("_note")]].dropna(how="all")
-        if len(notes):
-            md.append("\nModel notes (e.g. separation):\n\n" + _md_table(conf.loc[notes.index], ["model", "metric", "a", "b"] + list(notes.columns)))
+    md.append("\n## Confirmatory contrasts (PREREGISTRATION 5; Holm within each analysis)\n")
+    md.append("Pooled across included models with equal weight. Risk difference = mean over tickets of the "
+              "(A − B) rate difference averaged across models; 95% and 90% CIs by ticket bootstrap; p from a "
+              "paired sign-flip permutation test. **primary** = gate-passed pairs; **sensitivity** = all tickets. "
+              "Interpretation follows the section 6 table. Wilson bounds are at ticket level.\n\n")
+    if len(conf) and "p_perm" in conf:
+        md.append(_md_table(conf, [c for c in ["analysis", "metric", "a", "b", "models", "n_tickets", "k_runs_a",
+                                               "n_runs_a", "k_runs_b", "n_runs_b", "rate_a", "rate_b", "risk_diff",
+                                               "rd_ci95_low", "rd_ci95_high", "rd_ci90_low", "rd_ci90_high",
+                                               "risk_ratio", "wilson_upper_ticket_a", "wilson_upper_ticket_b",
+                                               "p_perm", "p_perm_holm", "interpretation"] if c in conf.columns]))
+        mcols = [c for c in conf.columns if c.startswith("mixed_")]
+        if mcols:
+            md.append("\nSupporting mixed model (condition × model + ticket random intercept):\n\n"
+                      + _md_table(conf, ["analysis", "metric", "a", "b"] + mcols))
+    elif len(conf):
+        md.append(_md_table(conf, [c for c in ["analysis", "metric", "a", "b", "note"] if c in conf.columns]))
     else:
         md.append("_none_\n")
+    md.append("\nPer-model contrasts (S5, secondary): `tables/secondary_per_model_contrasts.csv`.\n")
     if len(agree):
         md.append("\n## Judge vs human agreement\n")
         md.append(_md_table(agree, ["sample_set", "field", "scorer", "n_labeled", "human_positive", "scorer_positive", "raw_agreement", "kappa", "kappa_ci_low", "kappa_ci_high"]))

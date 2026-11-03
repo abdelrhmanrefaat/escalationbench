@@ -28,12 +28,19 @@ class Cell:
 
 def expand_grid(tickets: list[Ticket], cfg: ExperimentConfig, models: list[str] | None = None,
                 conditions: list[str] | None = None, repeats: int | None = None) -> list[Cell]:
+    """Repeat-major order (a budget stop leaves equal coverage up to the last finished repeat);
+    within each repeat the order is shuffled with a logged seed (PREREGISTRATION 3.4)."""
+    import random
     models = models or cfg.models
     conditions = conditions or cfg.conditions
     repeats = repeats if repeats is not None else cfg.repeats
-    # rep-major ordering: if the budget stops a run early, every ticket/condition has
-    # equal coverage up to the last finished repeat (no condition is systematically short).
-    return [Cell(t, c, m, r) for r in range(repeats) for t in tickets for m in models for c in conditions]
+    seed = int(cfg.raw.get("run_order_seed", 0))
+    out: list[Cell] = []
+    for r in range(repeats):
+        block = [Cell(t, c, m, r) for t in tickets for m in models for c in conditions]
+        random.Random(f"{seed}:{r}").shuffle(block)
+        out += block
+    return out
 
 
 def git_info() -> dict:
@@ -59,10 +66,14 @@ def check_confirmatory_allowed() -> dict:
                                capture_output=True, text=True).stdout
     if "PREREG-TEMPLATE" in committed:
         raise SystemExit("Refusing confirmatory run: the committed PREREGISTRATION.md is still the empty template.")
+    if "TODO" in committed:
+        raise SystemExit("Refusing confirmatory run: the committed PREREGISTRATION.md still contains TODO items.")
     import yaml
     plan = yaml.safe_load((REPO_ROOT / "config" / "analysis_plan.yaml").read_text())
     if str(plan.get("status", "")).upper() == "DRAFT":
         raise SystemExit("Refusing confirmatory run: config/analysis_plan.yaml is still DRAFT.")
+    if plan.get("sesoi_pp") in (None, "", "TODO"):
+        raise SystemExit("Refusing confirmatory run: sesoi_pp is not set in config/analysis_plan.yaml.")
     diff = subprocess.run(["git", "diff", "--quiet", info["prereg_commit"], "--", "config/prompts", "config/experiment.yaml",
                            "config/analysis_plan.yaml"],
                           cwd=REPO_ROOT)
@@ -92,7 +103,8 @@ def run_grid(*, cells: list[Cell], client: Client, store: RunStore, cfg: Experim
     store.write_manifest({
         "ts": utc_now(), "dry_run": client.is_mock, "max_usd": max_usd, "n_cells_requested": len(cells),
         "n_cells_todo": len(todo), "config": cfg.raw, "prompt_hashes": prompt_hashes(cfg.company_name),
-        "pricing_as_of": pricing.as_of, "git": git_info(), **(manifest_extra or {}),
+        "pricing_as_of": pricing.as_of, "git": git_info(), "run_order_seed": cfg.raw.get("run_order_seed", 0),
+        **(manifest_extra or {}),
     })
 
     stop = threading.Event()
@@ -102,12 +114,13 @@ def run_grid(*, cells: list[Cell], client: Client, store: RunStore, cfg: Experim
     gates_run = 0
     if cfg.gate.get("enabled", True):
         have = store.gates()
-        pairs = {(c.ticket.id, c.model): c.ticket for c in cells}
-        gate_todo = [(t, m) for (tid, m), t in pairs.items()
-                     if (have.get(gate_id(tid, m)) or {}).get("verdict") is None]
+        labels = set(cfg.gate.get("labels", ["MUST_ESCALATE"]))
+        pairs = {(c.ticket.id, c.model): c.ticket for c in cells if c.ticket.label in labels}
+        gate_todo = [(t, m, r) for (tid, m), t in pairs.items() for r in range(int(cfg.gate.get("repeats", 1)))
+                     if (have.get(gate_id(tid, m, r)) or {}).get("verdict") is None]
         with ThreadPoolExecutor(max_workers=max(1, concurrency or cfg.concurrency)) as pool:
             futs = [pool.submit(run_gate, client=client, store=store, budget=budget, pricing=pricing, cfg=cfg,
-                                ticket=t, model=m) for t, m in gate_todo]
+                                ticket=t, model=m, rep=r) for t, m, r in gate_todo]
             for f in futs:
                 try:
                     f.result()
