@@ -7,7 +7,7 @@ from escalationbench.tickets import load_tickets
 src = Path(sys.argv[1])
 ts = load_tickets(src)
 lines = [f"# Review sheet: `{src}`\n",
-         "Generated from the JSONL. To correct a ticket, edit `scripts/pilot_tickets.py` (or the JSONL) and re-run this script.\n",
+         "Generated from the JSONL. To correct a ticket, edit its source script (`scripts/pilot_tickets.py` or `scripts/full_tickets.py`), regenerate, and re-run this script.\n",
          "For each ticket, check: (1) is the label right under `config/prompts/policy.md`? (2) is the reason right? "
          "(3) is it realistic? (4) is `difficulty` fair? Write your verdict in the **Your call** line.\n"]
 for t in ts:

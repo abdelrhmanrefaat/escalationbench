@@ -11,7 +11,7 @@ from escalationbench.config import CONDITION_FILES, PROMPT_DIR, ExperimentConfig
 from escalationbench.cost import BudgetExceeded, BudgetGuard, Pricing
 from escalationbench.rawlog import RunStore
 from escalationbench.runner import expand_grid, run_grid
-from escalationbench.tickets import Ticket, assign_splits, load_tickets
+from escalationbench.tickets import Ticket, assign_splits, assign_splits_exact, load_tickets
 from escalationbench.tools import TOOL_DEFS, ToolEnvironment
 
 FIX = Path(__file__).parent / "fixtures" / "sample_tickets.jsonl"
@@ -81,6 +81,30 @@ def test_split_is_deterministic_and_stratified(tickets):
     b = assign_splits(tickets * 1, 0.5, seed=1)
     assert [t.split for t in a] == [t.split for t in b]
     assert {t.split for t in a} <= {"dev", "holdout"}
+
+
+def test_exact_split_gives_fixed_dev_count_per_label(tickets):
+    many = [t.model_copy(update={"id": f"{t.id}-{k}"}) for k in range(6) for t in tickets]
+    a = assign_splits_exact(many, dev_per_label=3, seed=20261103)
+    b = assign_splits_exact(many, dev_per_label=3, seed=20261103)
+    assert [t.split for t in a] == [t.split for t in b]
+    for label in {t.label for t in many}:
+        assert sum(t.split == "dev" and t.label == label for t in a) == 3
+    with pytest.raises(ValueError):
+        assign_splits_exact(many, dev_per_label=10_000, seed=1)
+
+
+def test_full_ticket_files_match_prereg_design():
+    from escalationbench.config import REPO_ROOT
+    d = REPO_ROOT / "data" / "tickets"
+    if not (d / "holdout.jsonl").exists():
+        pytest.skip("full ticket set not generated")
+    dev, hold = load_tickets(d / "dev.jsonl"), load_tickets(d / "holdout.jsonl")
+    assert {t.split for t in dev} == {"dev"} and {t.split for t in hold} == {"holdout"}
+    assert sum(t.label == "MUST_ESCALATE" for t in hold) == 80 and len(hold) == 160 and len(dev) == 20
+    assert not {t.id for t in dev} & {t.id for t in hold}
+    assert {t.category for t in dev + hold} == {"payment_dispute", "account_security", "safety", "routine"}
+    assert not any(t.category == "routine" and t.label == "MUST_ESCALATE" for t in dev + hold)
 
 
 # --------------------------------------------------------------------------- tools

@@ -105,6 +105,37 @@ def assign_splits(tickets: list[Ticket], dev_fraction: float, seed: int) -> list
     return sorted(out, key=lambda t: t.id)
 
 
+def assign_splits_exact(tickets: list[Ticket], dev_per_label: int, seed: int) -> list[Ticket]:
+    """Stratified split with an EXACT number of dev tickets per label (PREREGISTRATION 3.2 fixes the
+    holdout at 80 MUST / 80 SHOULD, which a fraction cannot guarantee).
+
+    Within each label, the dev quota is shared across categories in proportion to stratum size
+    (largest-remainder rounding, ties broken by the seeded RNG); tickets inside each label x category
+    stratum are then drawn at random. Deterministic for a given seed.
+    """
+    rng = random.Random(seed)
+    strata: dict[tuple[str, str], list[Ticket]] = defaultdict(list)
+    for t in sorted(tickets, key=lambda t: t.id):
+        strata[(t.label, t.category)].append(t)
+    dev_ids: set[str] = set()
+    for label in sorted({lab for lab, _ in strata}):
+        keys = sorted(k for k in strata if k[0] == label)
+        n_label = sum(len(strata[k]) for k in keys)
+        if dev_per_label > n_label:
+            raise ValueError(f"dev_per_label={dev_per_label} exceeds {n_label} {label} tickets")
+        exact = {k: dev_per_label * len(strata[k]) / n_label for k in keys}
+        quota = {k: int(exact[k]) for k in keys}
+        tiebreak = {k: rng.random() for k in keys}
+        for k in sorted(keys, key=lambda k: (-(exact[k] - quota[k]), tiebreak[k]))[: dev_per_label - sum(quota.values())]:
+            quota[k] += 1
+        for k in keys:
+            group = strata[k][:]
+            rng.shuffle(group)
+            dev_ids.update(t.id for t in group[: quota[k]])
+    return [t.model_copy(update={"split": "dev" if t.id in dev_ids else "holdout"})
+            for t in sorted(tickets, key=lambda t: t.id)]
+
+
 def label_balance(tickets: list[Ticket]) -> dict:
     counts: dict = defaultdict(lambda: defaultdict(int))
     for t in tickets:

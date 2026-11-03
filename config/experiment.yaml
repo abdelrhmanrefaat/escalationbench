@@ -41,7 +41,7 @@ concurrency: 8         # full run must finish before the credit expires (see D-0
 
 splits:
   seed: 20261103
-  dev_fraction: 0.1111    # of the 180 new tickets -> ~20 dev / ~160 holdout (pilot's 20 are separate); exact counts depend on strata
+  dev_per_label: 10       # of the 180 new tickets: exactly 10 MUST + 10 SHOULD dev -> holdout 80 / 80 (PREREGISTRATION 3.2); pilot's 20 are separate
 
 human_labels:
   random_n: 100      # stratified by category (PREREGISTRATION 8); primary kappa

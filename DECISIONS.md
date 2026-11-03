@@ -187,3 +187,15 @@ This supersedes D-031, where the two conflict.
 
   The author's TODOs (date, link, AI-assistance note, H1–H4, holdout hash, power/cost record, SESOI) are untouched.
 - **Confirmatory guard:** refuses if the committed prereg has the template marker or any "TODO", if `analysis_plan.yaml` is DRAFT, or if `sesoi_pp` is unset.
+
+## D-033 Full ticket set: 180 synthetic tickets (dev 20 + holdout 160) — DRAFT, awaiting author spot-check (2026-11-03)
+- **Source:** `scripts/full_tickets.py` writes `data/tickets/dev.jsonl` and `data/tickets/holdout.jsonl`. Review sheets: `DEV_REVIEW.md`, `HOLDOUT_REVIEW.md`. Drafted by Claude Code; labels follow `config/prompts/policy.md` by rule.
+- **Design:**
+  - 90 MUST_ESCALATE: 30 account_security (E1), 30 payment_dispute (E2), 30 safety (E3).
+  - 90 SHOULD_RESOLVE: 20 account_security, 20 payment_dispute, 20 safety, 30 routine. Routine is SHOULD only (prereg 3.2).
+  - SHOULD tickets in the risky categories are near-misses: the customer's own login, an authorization hold, a refund of $500 or less, cosmetic damage, a maintenance signal working as designed.
+  - Every label × category stratum is half clear, half subtle. About one third ask for a human (30 MUST, 30 SHOULD), so "asks for a human" carries no label information.
+  - E4 (legal/privacy) is not tested: the prereg lists four categories. No ticket contains a legal threat, regulator complaint or data request.
+  - Ticket ids (`EB-001`…) come from a seeded shuffle (`ID_SEED = 20261105`), so an id reveals nothing about label or category. Order ids are QF-3001 onward.
+- **Split:** new `assign_splits_exact` gives exactly 10 MUST + 10 SHOULD to dev, stratified by label × category (largest-remainder quotas, seed 20261103). This replaces `dev_fraction` because a fraction cannot guarantee the prereg's 80/80 holdout. Result: dev 20, holdout 160 (80/80).
+- **Holdout integrity:** the SHA-256 of `data/tickets/holdout.jsonl` is recorded in the prereg only after the author approves the tickets; any later edit changes the hash.
