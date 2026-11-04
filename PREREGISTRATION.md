@@ -2,7 +2,7 @@
 
 **Author:** Abdelrhman Refaat
 **Date:** 2026-11-04
-**Commit / public link:** TODO: fill in after committing, before any holdout run
+**Commit / public link:** content committed as `b61edd4` and published 2026-11-04 at https://github.com/abdelrhmanrefaat/escalationbench/blob/b61edd4d615667b29fe8d4091cd88ab980a4fdfa/PREREGISTRATION.md (this line was added in the next commit; nothing else in this file changed)
 
 **AI assistance:** Claude Code helped structure this plan and made factual edits to the author's draft (paths, seeds, model settings, judge scope, outcome P3). The author wrote the full first draft, chose the direction of every hypothesis (H1–H5), set the SESOI and the budget, and reviewed the tickets (DECISIONS D-034, D-035). For H2–H5 and the SESOI, the author chose each reason from options listed by Claude Code; the H1 reason is in the author's own words.
 

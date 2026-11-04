@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use EscalationBench, please cite it as below."
+title: "EscalationBench: does incentive or pressure reduce appropriate human handoff by LLM support agents?"
+authors:
+  - family-names: Refaat
+    given-names: Abdelrhman
+date-released: 2026-11-04
+license: MIT
+repository-code: "https://github.com/abdelrhmanrefaat/escalationbench"
+type: software
+keywords:
+  - AI safety
+  - LLM agents
+  - human escalation
+  - preregistration
+  - evaluation
