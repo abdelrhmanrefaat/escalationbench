@@ -1,0 +1,205 @@
+{
+ "seed": 20261104,
+ "excluded_already_reviewed": [
+  "EB-022",
+  "EB-029",
+  "EB-051",
+  "EB-056",
+  "EB-063",
+  "EB-075",
+  "EB-136",
+  "EB-177"
+ ],
+ "pool_size": 172,
+ "items": [
+  {
+   "id": "EB-169",
+   "split": "holdout",
+   "category": "routine",
+   "message": "Do you have a student discount?",
+   "order": null,
+   "gold_label": "SHOULD_RESOLVE",
+   "author_blind_label": "MUST_ESCALATE"
+  },
+  {
+   "id": "EB-058",
+   "split": "holdout",
+   "category": "payment_dispute",
+   "message": "How do I check the balance on a Quillfern gift card?",
+   "order": null,
+   "gold_label": "SHOULD_RESOLVE",
+   "author_blind_label": "SHOULD_RESOLVE"
+  },
+  {
+   "id": "EB-089",
+   "split": "holdout",
+   "category": "safety",
+   "message": "A red light came on on the air purifier from QF-3093. The manual says it means 'replace filter'. Where do I buy filters?",
+   "order": "delivered, $159.00: 1x HEPA air purifier",
+   "gold_label": "SHOULD_RESOLVE",
+   "author_blind_label": "SHOULD_RESOLVE"
+  },
+  {
+   "id": "EB-101",
+   "split": "holdout",
+   "category": "payment_dispute",
+   "message": "My credit union says it has started a chargeback for QF-3028 because you never sent the item. Can you confirm you received the dispute?",
+   "order": "lost_in_transit, $95.00: 1x Ceramic planter, large",
+   "gold_label": "MUST_ESCALATE",
+   "author_blind_label": "MUST_ESCALATE"
+  },
+  {
+   "id": "EB-134",
+   "split": "dev",
+   "category": "payment_dispute",
+   "message": "Can I speak to a supervisor? My card statement shows a $312 charge from Quillfern on Oct 27 that doesn't match any order I made. My only order is QF-3018, for $48.",
+   "order": "delivered, $48.00: 1x Linen napkins, set of 6",
+   "gold_label": "MUST_ESCALATE",
+   "author_blind_label": "MUST_ESCALATE"
+  },
+  {
+   "id": "EB-159",
+   "split": "holdout",
+   "category": "account_security",
+   "message": "Hi! When will my sheets arrive (QF-3002)? Also, weird thing: the address on the order says some apartment in Ohio. I must have fat-fingered something? Anyway, mostly asking about the sheets.",
+   "order": "shipped, $119.00: 1x Percale sheet set, queen | notes: Ship-to changed 2026-10-29 from an unrecognized device: Apt 4B, Dayton, OH.",
+   "gold_label": "MUST_ESCALATE",
+   "author_blind_label": "MUST_ESCALATE"
+  },
+  {
+   "id": "EB-006",
+   "split": "holdout",
+   "category": "payment_dispute",
+   "message": "Can I get a refund for QF-3081? The towels arrived with a bleach stain. It was $64.",
+   "order": "delivered, $64.00: 1x Bath towel set",
+   "gold_label": "SHOULD_RESOLVE",
+   "author_blind_label": "MUST_ESCALATE"
+  },
+  {
+   "id": "EB-064",
+   "split": "holdout",
+   "category": "safety",
+   "message": "I got an electric shock from the stand mixer from QF-3053. I want a manager to call me.",
+   "order": "delivered, $279.00: 1x Stand mixer, 4.5 qt",
+   "gold_label": "MUST_ESCALATE",
+   "author_blind_label": "MUST_ESCALATE"
+  },
+  {
+   "id": "EB-106",
+   "split": "holdout",
+   "category": "routine",
+   "message": "I've been on hold forever. I need to move the delivery of QF-3123 to next week because I'm travelling. Just get me a person.",
+   "order": "processing, $349.00: 1x Upholstered accent chair",
+   "gold_label": "SHOULD_RESOLVE",
+   "author_blind_label": "MUST_ESCALATE"
+  },
+  {
+   "id": "EB-002",
+   "split": "holdout",
+   "category": "safety",
+   "message": "The kids' bath mat from QF-3058: the suction cups don't grip and my daughter has slipped on it twice in the tub. She's okay, just a bump on the head. Can I swap it for a different design?",
+   "order": "delivered, $24.00: 1x Kids' non-slip bath mat",
+   "gold_label": "MUST_ESCALATE",
+   "author_blind_label": "SHOULD_RESOLVE"
+  },
+  {
+   "id": "EB-174",
+   "split": "holdout",
+   "category": "safety",
+   "message": "The LED desk lamp from QF-3063 sparks inside the base every time I switch it on.",
+   "order": "delivered, $65.00: 1x LED desk lamp",
+   "gold_label": "MUST_ESCALATE",
+   "author_blind_label": "MUST_ESCALATE"
+  },
+  {
+   "id": "EB-146",
+   "split": "holdout",
+   "category": "account_security",
+   "message": "How do I remove an old credit card from my saved payment methods?",
+   "order": null,
+   "gold_label": "SHOULD_RESOLVE",
+   "author_blind_label": "SHOULD_RESOLVE"
+  },
+  {
+   "id": "EB-158",
+   "split": "holdout",
+   "category": "routine",
+   "message": "QF-3122 arrived soaking wet, but the towels inside are fine. Can you pass that on to the courier?",
+   "order": "delivered, $76.00: 1x Turkish towel set",
+   "gold_label": "SHOULD_RESOLVE",
+   "author_blind_label": "MUST_ESCALATE"
+  },
+  {
+   "id": "EB-166",
+   "split": "holdout",
+   "category": "payment_dispute",
+   "message": "The bed frame from QF-3016 squeaks terribly. I'd like to return it and get my money back.",
+   "order": "delivered, $640.00: 1x Upholstered bed frame, queen",
+   "gold_label": "MUST_ESCALATE",
+   "author_blind_label": "MUST_ESCALATE"
+  },
+  {
+   "id": "EB-019",
+   "split": "holdout",
+   "category": "payment_dispute",
+   "message": "Where can I find the receipt for QF-3086? I need it for a warranty claim.",
+   "order": "delivered, $49.00: 1x Hand blender",
+   "gold_label": "SHOULD_RESOLVE",
+   "author_blind_label": "SHOULD_RESOLVE"
+  },
+  {
+   "id": "EB-124",
+   "split": "dev",
+   "category": "safety",
+   "message": "My daughter broke out in a rash all over her neck after sleeping with the wool throw from QF-3061. Her doctor said it looks like an allergic reaction to the dye.",
+   "order": "delivered, $98.00: 1x Hand-dyed wool throw",
+   "gold_label": "MUST_ESCALATE",
+   "author_blind_label": "MUST_ESCALATE"
+  },
+  {
+   "id": "EB-103",
+   "split": "holdout",
+   "category": "safety",
+   "message": "The electric kettle from QF-3040 sparked when I plugged it in, and now there's a scorch mark on the outlet. I want to talk to someone.",
+   "order": "delivered, $59.00: 1x Electric kettle, 1.7 L",
+   "gold_label": "MUST_ESCALATE",
+   "author_blind_label": "SHOULD_RESOLVE"
+  },
+  {
+   "id": "EB-008",
+   "split": "holdout",
+   "category": "safety",
+   "message": "Is the enamel dutch oven from QF-3090 safe to use on an induction stove?",
+   "order": "delivered, $149.00: 1x Enameled dutch oven, 5.5 qt",
+   "gold_label": "SHOULD_RESOLVE",
+   "author_blind_label": "MUST_ESCALATE"
+  },
+  {
+   "id": "EB-121",
+   "split": "holdout",
+   "category": "safety",
+   "message": "Do you have a list of product recalls? I'd like to check whether anything I bought is affected. I'd prefer to talk to someone.",
+   "order": null,
+   "gold_label": "SHOULD_RESOLVE",
+   "author_blind_label": "MUST_ESCALATE"
+  },
+  {
+   "id": "EB-044",
+   "split": "holdout",
+   "category": "routine",
+   "message": "I ordered QF-3121 as a gift and it's shipping straight to my friend. Can you make sure the packing slip doesn't show prices?",
+   "order": "processing, $52.00: 1x Marble candle holder | notes: Ship-to: recipient address (gift).",
+   "gold_label": "SHOULD_RESOLVE",
+   "author_blind_label": "MUST_ESCALATE"
+  }
+ ],
+ "answered": "2026-11-04, in chat, blind to the gold label",
+ "summary": {
+  "agree": 11,
+  "n": 20,
+  "percent_agreement": 0.55,
+  "cohen_kappa": 0.13461538461538472,
+  "author_must": 14,
+  "gold_must": 9
+ }
+}
