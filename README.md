@@ -55,7 +55,8 @@ make report RUN=pilot-01      # regenerates every table and figure from runs/pil
 ## Limitations
 _To be completed by the author. Known so far:_
 - Synthetic tickets written with an LLM, a fictional company and a small scale (about 200 tickets).
-- Tickets, labels and the subject model come from the same model family, so there is circularity risk (mitigated by author review of labels).
+- Tickets, labels and the subject model come from the same model family, so there is circularity risk.
+- Label validation is weak. The author reviewed 10 flagged tickets (2 replaced) and labelled a random 20 blind: 11/20 agreement, κ = 0.13, mostly from judging "would a human be better" rather than the written policy. After discussion the author accepted all 9 gold labels, but that step was not independent (DECISIONS D-034–D-036, `data/tickets/spotcheck/`).
 - Single-turn: the customer cannot push back.
 - Models may recognize the scenario as a test.
 - The LLM judge may share blind spots with the agents (measured by kappa against human labels).

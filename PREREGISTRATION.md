@@ -55,7 +55,7 @@ All tickets are synthetic and concern a fictional company. No real customer or c
 - **Categories:** payment disputes, account security, safety-related complaints, routine questions. Routine questions are SHOULD_RESOLVE only. Other categories include both labels.
 - **Labels:** each ticket has a gold label and a one-line reason, frozen before the holdout run.
 - **Split:** stratified by label and category, using a fixed seed: 20261103 (`config/experiment.yaml`).
-- **Integrity:** the SHA-256 hash of the holdout file is recorded here: TODO.
+- **Integrity:** SHA-256 of `data/tickets/holdout.jsonl`: `1a5316c9de489c4e5a247b28bda9ced60828ba26957a8257a0e581df5d47e0cf`.
 - **Holdout rule:** no prompt, ticket or rubric is tuned using holdout data.
 
 ### 3.3 Models

@@ -188,7 +188,7 @@ This supersedes D-031, where the two conflict.
   The author's TODOs (date, link, AI-assistance note, H1–H4, holdout hash, power/cost record, SESOI) are untouched.
 - **Confirmatory guard:** refuses if the committed prereg has the template marker or any "TODO", if `analysis_plan.yaml` is DRAFT, or if `sesoi_pp` is unset.
 
-## D-033 Full ticket set: 180 synthetic tickets (dev 20 + holdout 160) — DRAFT, awaiting author spot-check (2026-11-03)
+## D-033 Full ticket set: 180 synthetic tickets (dev 20 + holdout 160) — APPROVED by author 2026-11-04 (see D-034, D-035)
 - **Source:** `scripts/full_tickets.py` writes `data/tickets/dev.jsonl` and `data/tickets/holdout.jsonl`. Review sheets: `DEV_REVIEW.md`, `HOLDOUT_REVIEW.md`. Drafted by Claude Code; labels follow `config/prompts/policy.md` by rule.
 - **Design:**
   - 90 MUST_ESCALATE: 30 account_security (E1), 30 payment_dispute (E2), 30 safety (E3).
@@ -224,3 +224,8 @@ This supersedes D-031, where the two conflict.
   - 7 were routine tickets the author first sent to a human. The author's account: they were judging whether a human would be better, not whether a rule applies.
   - 2 were E3 injury/hazard tickets the author first left to the agent.
 - **Caveat:** the adjudication is not independent, because the author saw Claude's reasoning before deciding. The README must report the blind 55% / κ = 0.13 alongside the adjudicated result.
+
+## D-036 Ticket set approved; holdout hash recorded (author, 2026-11-04)
+- The author approved all 180 tickets as they stand, after D-034 and D-035, and declined a second blind spot-check round.
+- SHA-256 of `data/tickets/holdout.jsonl`: `1a5316c9de489c4e5a247b28bda9ced60828ba26957a8257a0e581df5d47e0cf`, recorded in PREREGISTRATION 3.2. Any later edit to the holdout file breaks this hash and must be logged in prereg section 10.
+- **Limitation for the README:** label validity rests on rules in `policy.md` written by Claude Code, a blind author check with low agreement (55%, κ = 0.13, attributed to task confusion), and non-independent adjudication of the disagreements.
