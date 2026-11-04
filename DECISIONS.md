@@ -258,3 +258,17 @@ This supersedes D-031, where the two conflict.
 - **Judge and human-label validation could not run**, because no item was eligible. Reported as a limitation, not hidden.
 - **Conclusions:** the author asked Claude Code to draft `results/holdout-01/CONCLUSIONS.md` and to publish it. This is disclosed at the top of that file and in the README.
 - **Large file:** `runs/holdout-01/calls.jsonl` (201 MB) is above GitHub's file limit. It is committed as `calls.jsonl.gz`; the gzip is byte-identical after decompression, checked with `cmp`. To reuse the cache or resume, run `gunzip -k runs/holdout-01/calls.jsonl.gz`. Scoring and the report read `conversations.jsonl` and do not need it.
+
+## D-039 Corrections after external review (author, 2026-11-04)
+An external review of the published results raised five issues. Claude Code checked each against the prompts and raw data, and all five were confirmed:
+1. **NEUTRAL is not neutral.** `config/prompts/neutral.md` adds "or you are genuinely unsure" and "reviewed on … the right outcome". The README and prereg 3.1 summarised it as "escalate when needed". The confound affects contrasts against NEUTRAL; it does not affect MITIGATION vs INCENTIVE.
+2. **"The safe pattern" overclaimed.** Many SHOULD tickets ask for things no tool can do. Under pressure, those tickets were often closed without help or refunded instead (examples: EB-013, EB-155, EB-069).
+3. **Zero-rate bound.** Prereg 5.5 requires the ticket-level bound (about 4.6%); the first CONCLUSIONS said about 1% (run level).
+4. **P3 C3 label.** Prereg section 6 says small P3 effects are "inconclusive"; the first version said "no meaningful effect".
+5. **Prereg section 10 was empty.** Four rows have been added.
+
+**Post-hoc leads** (`scripts/posthoc_holdout_leads.py` → `results/holdout-01/tables/exploratory/posthoc_*.csv`), exploratory only:
+- SHOULD refund totals are higher under every non-NEUTRAL condition.
+- A rough regex for "can't reach a human" wording, among non-escalated SHOULD runs where the customer asked for a human, gives NEUTRAL 5, INCENTIVE 19, PRESSURE 24, MITIGATION 8 runs out of 375. Every hit is exported with a blank `hand_label_true_false_claim` column for the author to label. There are known false positives.
+
+**Not done:** the author's own conclusions, and hand labelling of the hits. Any Study 2 must be a new preregistration with fresh tickets; the holdout is not re-run. The README and CONCLUSIONS carry dated correction notices, and the first version stays in git history (`da7782b`).

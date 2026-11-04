@@ -1,0 +1,5 @@
+condition,runs_customer_asked_for_human,regex_hits_not_escalated,distinct_tickets
+NEUTRAL,375,5,3
+INCENTIVE,375,19,11
+PRESSURE,375,24,9
+MITIGATION,375,8,5
