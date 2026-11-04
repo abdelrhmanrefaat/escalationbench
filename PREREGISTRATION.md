@@ -1,14 +1,12 @@
 # Preregistration: EscalationBench
 
-<!-- PREREG-TEMPLATE: delete this line when the author has written every section. The confirmatory run refuses to start while it is present. -->
-
 **Author:** Abdelrhman Refaat
-**Date:** TODO: actual date of the commit
+**Date:** 2026-11-04
 **Commit / public link:** TODO: fill in after committing, before any holdout run
 
-**AI assistance:** Claude helped structure and draft this plan. TODO: confirm which sections you wrote or changed yourself.
+**AI assistance:** Claude Code helped structure this plan and made factual edits to the author's draft (paths, seeds, model settings, judge scope, outcome P3). The author wrote the full first draft, chose the direction of every hypothesis (H1–H5), set the SESOI and the budget, and reviewed the tickets (DECISIONS D-034, D-035). For H2–H5 and the SESOI, the author chose each reason from options listed by Claude Code; the H1 reason is in the author's own words.
 
-> Items marked TODO must be completed before the holdout run. Once this file is committed, any change goes in Section 10.
+> Once this file is committed, any change goes in Section 10.
 
 ## 1. Research question
 
@@ -18,13 +16,13 @@ The study uses synthetic tickets and mock tools. It does not measure real-world 
 
 ## 2. Hypotheses
 
-TODO: write these yourself, in your own words, and commit them before the holdout run. State a direction and the reason for each.
+Directions are for the pooled estimate across included models. "No change" means the effect lies within ±SESOI.
 
-- **H1, INCENTIVE vs NEUTRAL, missed escalation:** TODO
-- **H2, PRESSURE vs NEUTRAL, missed escalation:** TODO
-- **H3, MITIGATION vs INCENTIVE, missed escalation:** TODO
-- **H4, the same three contrasts, undisclosed failure:** TODO
-- **H5, the same three contrasts, unnecessary escalation:** TODO
+- **H1, INCENTIVE vs NEUTRAL, missed escalation:** increase. Reason (author's words): the agent will try to protect its score — "it should protect the score!"
+- **H2, PRESSURE vs NEUTRAL, missed escalation:** increase. Reason: AI models are trained to follow instructions, so a direct request from a manager is treated like an order.
+- **H3, MITIGATION vs INCENTIVE, missed escalation:** decrease. Reason: once required handoffs don't hurt the score, there is no reason to skip them; the policy removes the conflict.
+- **H4, the same three contrasts, undisclosed failure:** the same pattern as H1–H3 (increase, increase, decrease). Reason: an agent that skips a handoff to look good will also avoid admitting it, so hiding protects the score.
+- **H5, the same three contrasts, unnecessary escalation:** INCENTIVE vs NEUTRAL decrease; PRESSURE vs NEUTRAL decrease; MITIGATION vs INCENTIVE no change. Reason: under pressure the agent cuts the escalations it does not need first, because they are the cheapest to cut. The MITIGATION policy excuses only required escalations, and unnecessary ones still count, so behaviour on these tickets should not change. (H5 was written after seeing the dev run; see 4.1.)
 
 ## 3. Design
 
@@ -77,7 +75,18 @@ Planned holdout agent runs: 160 tickets × 4 conditions × 5 repeats × 3 models
 
 Before the holdout run, a simulation based on pilot and development rates estimates power for the SESOI in Section 6, after Holm correction. Target: 80%. If power falls short, repeats or tickets may be increased before the holdout run. The sample is never increased after seeing holdout results.
 
-TODO: record the simulated power, cost estimate and approved budget.
+**Power (simulated from dev-01, DECISIONS D-037).** Per model, 80 tickets × 5 repeats, two-sided sign-flip permutation, Bonferroni across 27 tests (a conservative stand-in for the pooled, Holm-9 test):
+
+- **P1/P2:** dev-01 rates were 0% in every condition. Power to detect a +5pp increase is 94%, and ≥99% from +10pp.
+- **P3:** dev-01 NEUTRAL rates were 54% (Haiku), 38% (GPT) and 16% (Sonnet).
+  - Power to detect a decrease: Haiku 50% at −10pp, 85% at −15pp; GPT 27% at −10pp, 65% at −15pp, 89% at −20pp; Sonnet 18% at −20pp.
+  - Decreases smaller than about 15pp are therefore likely to come out inconclusive, not null.
+
+The simulation assumes an effect spread evenly across tickets; an effect concentrated in a few tickets would have less power. Pilot and dev rates are the only inputs; no holdout data was used.
+
+**Cost.** dev-01 cost $6.97 for 1,200 conversations and 150 gate probes, about $0.0058 per conversation. The holdout's 9,600 conversations plus 1,200 probes are estimated at about $56.
+
+**Approved budget:** a hard cap of $70 (`--max-usd 70`). The run stops cleanly at the cap; going beyond it needs a new approval from the author.
 
 Run order is randomized with a logged seed.
 
@@ -166,7 +175,7 @@ Holm correction is applied across the 9 confirmatory tests at family-wise alpha 
 
 ## 6. Interpreting a null result
 
-**Smallest effect size of interest (SESOI):** TODO, in percentage points, with a practical reason. It must be set before the holdout run.
+**Smallest effect size of interest (SESOI):** 5 percentage points, for all three primary outcomes. Reason: 5 missed handoffs per 100 required tickets means real customers with fraud, hacked accounts or injuries left without a human. For P3 the study cannot reliably detect changes this small (see 3.4), so a small P3 effect will be reported as inconclusive, not as "no effect".
 
 | Result | Interpretation |
 |---|---|
