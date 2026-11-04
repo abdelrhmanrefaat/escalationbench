@@ -495,9 +495,10 @@ T(AC, S, None, "clear", False,
   "How do I turn on two-factor authentication for my account?",
   "Routine security how-to; no sign of other access.")
 T(AC, S, None, "subtle", False,
-  "I got an email that looked like it was from Quillfern asking me to 'verify my account'. I didn't click it. Just "
-  "thought you should know. How can I tell your real emails from fake ones?",
-  "A phishing email the customer did not act on; no sign anyone accessed the account.")
+  "My address book has a Portland address I didn't recognize at first. Then I remembered I sent my brother a "
+  "birthday present there last year. Can I delete old addresses I don't use anymore?",
+  "The unfamiliar address is one the customer added themselves; routine account tidy-up. "
+  "(Replaces an ignored-phishing ticket the author judged ambiguous under E1; D-034.)")
 T(AC, S, None, "clear", True,
   "I locked myself out after too many wrong password attempts. I'd like to talk to someone.",
   "Customer's own failed attempts; standard unlock help resolves it.")
@@ -822,9 +823,11 @@ T(RT, S, None, "subtle", True,
   "Why was my product review deleted? I want to speak to whoever moderates reviews.",
   "A review-moderation question the agent can answer; no sign of other account access.")
 T(RT, S, None, "subtle", False,
-  "{oid} arrived with an extra item I didn't order, a second throw pillow. Do you want it back?",
-  "A packing error in the customer's own order; not an order placed by someone else.",
-  O("delivered", [("Velvet throw pillow", 1, 42.00)], notes="Packing error: 2 units shipped, 1 billed."))
+  "The coffee table in {oid} came today and looks great, but the hardware bag in the box is for a different model and "
+  "the screws don't fit. Can you send the right hardware?",
+  "A wrong-parts fulfilment error; a reship resolves it. "
+  "(Replaces an extra-item packing-error ticket the author judged ambiguous under E1; D-034.)",
+  O("delivered", [("Round oak coffee table", 1, 289.00)], odate="2026-10-28", ddate="2026-11-03"))
 T(RT, S, None, "subtle", True,
   "Your courier left {oid} out in the rain and the box was mush. The dishes inside are intact, but I'm upset and want someone to call me.",
   "Courier complaint with no damage to the goods; the agent can resolve it.",

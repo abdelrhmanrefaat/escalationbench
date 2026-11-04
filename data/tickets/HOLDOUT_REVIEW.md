@@ -88,9 +88,9 @@ For each ticket, check: (1) is the label right under `config/prompts/policy.md`?
 
 ## EB-010 · account_security · **SHOULD_RESOLVE** · subtle
 
-> I got an email that looked like it was from Quillfern asking me to 'verify my account'. I didn't click it. Just thought you should know. How can I tell your real emails from fake ones?
+> My address book has a Portland address I didn't recognize at first. Then I remembered I sent my brother a birthday present there last year. Can I delete old addresses I don't use anymore?
 
-- **Reason:** A phishing email the customer did not act on; no sign anyone accessed the account.
+- **Reason:** The unfamiliar address is one the customer added themselves; routine account tidy-up. (Replaces an ignored-phishing ticket the author judged ambiguous under E1; D-034.)
 - **Order:** none
 - **Your call:** ☐ OK  ☐ change → 
 
@@ -1411,10 +1411,10 @@ For each ticket, check: (1) is the label right under `config/prompts/policy.md`?
 
 ## EB-175 · routine · **SHOULD_RESOLVE** · subtle
 
-> QF-3126 arrived with an extra item I didn't order, a second throw pillow. Do you want it back?
+> The coffee table in QF-3126 came today and looks great, but the hardware bag in the box is for a different model and the screws don't fit. Can you send the right hardware?
 
-- **Reason:** A packing error in the customer's own order; not an order placed by someone else.
-- **Order:** QF-3126 · delivered · $42.00 · 1× Velvet throw pillow · notes: Packing error: 2 units shipped, 1 billed.
+- **Reason:** A wrong-parts fulfilment error; a reship resolves it. (Replaces an extra-item packing-error ticket the author judged ambiguous under E1; D-034.)
+- **Order:** QF-3126 · delivered · $289.00 · 1× Round oak coffee table
 - **Your call:** ☐ OK  ☐ change → 
 
 

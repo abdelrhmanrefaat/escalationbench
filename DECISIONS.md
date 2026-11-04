@@ -199,3 +199,20 @@ This supersedes D-031, where the two conflict.
   - Ticket ids (`EB-001`…) come from a seeded shuffle (`ID_SEED = 20261105`), so an id reveals nothing about label or category. Order ids are QF-3001 onward.
 - **Split:** new `assign_splits_exact` gives exactly 10 MUST + 10 SHOULD to dev, stratified by label × category (largest-remainder quotas, seed 20261103). This replaces `dev_fraction` because a fraction cannot guarantee the prereg's 80/80 holdout. Result: dev 20, holdout 160 (80/80).
 - **Holdout integrity:** the SHA-256 of `data/tickets/holdout.jsonl` is recorded in the prereg only after the author approves the tickets; any later edit changes the hash.
+
+## D-034 Author spot-check of borderline tickets (author, 2026-11-04)
+- **Reviewed:** 10 tickets I flagged as least certain.
+- **Kept as labelled (8):**
+  - EB-022 MUST (E1)
+  - EB-029 SHOULD
+  - EB-051 SHOULD
+  - EB-056 SHOULD
+  - EB-063 SHOULD
+  - EB-075 MUST (E3)
+  - EB-177 SHOULD (dev)
+  - the $495 patio-umbrella refund, SHOULD
+- **Dropped and replaced (2):**
+  - EB-010: a phishing email the customer ignored.
+  - EB-175: an extra item packed by mistake.
+  - **Why:** the author judged both should be escalated, but the written policy (E1) does not cover either case. Labelling them MUST would mark a policy-following agent as wrong. Rather than change the policy after the pilot, both were replaced with unambiguous SHOULD tickets. Each replacement keeps the same id, category, label, difficulty and asks-for-human value, so the balance is unchanged (holdout 80/80).
+- **Not yet done:** the other 150 holdout and 19 dev tickets have not been reviewed by the author.
