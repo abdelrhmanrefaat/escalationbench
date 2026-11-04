@@ -1,0 +1,71 @@
+
+Cost estimate (token counts from count_tokens API; prices as of 2026-10-06)
+Assumes 3.0 API calls/conversation, +600 input tokens per call, 700 output tokens/call, no caching discount.
+model               condition   1st-call in tok    $/conv  subtotal $
+claude-sonnet-5-5   NEUTRAL                1509    0.0337        3.37
+claude-sonnet-5-5   INCENTIVE              1516    0.0337        3.37
+claude-sonnet-5-5   PRESSURE               1537    0.0338        3.38
+claude-sonnet-5-5   MITIGATION             1578    0.0341        3.41
+claude-haiku-5-5    NEUTRAL                1509    0.0017        0.17
+claude-haiku-5-5    INCENTIVE              1516    0.0017        0.17
+claude-haiku-5-5    PRESSURE               1537    0.0017        0.17
+claude-haiku-5-5    MITIGATION             1578    0.0017        0.17
+gpt-6.1-sol         NEUTRAL                 923    0.0301        3.01
+gpt-6.1-sol         INCENTIVE               928    0.0302        3.02
+gpt-6.1-sol         PRESSURE                946    0.0303        3.03
+gpt-6.1-sol         MITIGATION              984    0.0305        3.05
+Knowledge gate probes: $0.36 (included in agent total)
+Conversations: 1200  agent $26.66  judge (upper bound) $0.00  total with x1.3 margin: $34.66
+
+Run dev-01: 1200 cells; hard cap $9.00
+  knowledge gate: 150/150 probes | spent $0.2224
+  25/1200 conversations | spent $0.4166 of $9.00
+  50/1200 conversations | spent $0.5580 of $9.00
+  75/1200 conversations | spent $0.6792 of $9.00
+  100/1200 conversations | spent $0.8738 of $9.00
+  125/1200 conversations | spent $1.0225 of $9.00
+  150/1200 conversations | spent $1.1709 of $9.00
+  175/1200 conversations | spent $1.3418 of $9.00
+  200/1200 conversations | spent $1.4632 of $9.00
+  225/1200 conversations | spent $1.6865 of $9.00
+  250/1200 conversations | spent $1.8250 of $9.00
+  275/1200 conversations | spent $1.9400 of $9.00
+  300/1200 conversations | spent $2.0536 of $9.00
+  325/1200 conversations | spent $2.1867 of $9.00
+  350/1200 conversations | spent $2.3169 of $9.00
+  375/1200 conversations | spent $2.4411 of $9.00
+  400/1200 conversations | spent $2.5714 of $9.00
+  425/1200 conversations | spent $2.7074 of $9.00
+  450/1200 conversations | spent $2.8622 of $9.00
+  475/1200 conversations | spent $3.0393 of $9.00
+  500/1200 conversations | spent $3.1580 of $9.00
+  525/1200 conversations | spent $3.2867 of $9.00
+  550/1200 conversations | spent $3.4160 of $9.00
+  575/1200 conversations | spent $3.5289 of $9.00
+  600/1200 conversations | spent $3.6534 of $9.00
+  625/1200 conversations | spent $3.7924 of $9.00
+  650/1200 conversations | spent $3.9452 of $9.00
+  675/1200 conversations | spent $4.0829 of $9.00
+  700/1200 conversations | spent $4.2183 of $9.00
+  725/1200 conversations | spent $4.3540 of $9.00
+  750/1200 conversations | spent $4.4538 of $9.00
+  775/1200 conversations | spent $4.6166 of $9.00
+  800/1200 conversations | spent $4.7258 of $9.00
+  825/1200 conversations | spent $4.8421 of $9.00
+  850/1200 conversations | spent $5.0236 of $9.00
+  875/1200 conversations | spent $5.1905 of $9.00
+  900/1200 conversations | spent $5.3469 of $9.00
+  925/1200 conversations | spent $5.4948 of $9.00
+  950/1200 conversations | spent $5.6230 of $9.00
+  975/1200 conversations | spent $5.7293 of $9.00
+  1000/1200 conversations | spent $5.8650 of $9.00
+  1025/1200 conversations | spent $5.9930 of $9.00
+  1050/1200 conversations | spent $6.1453 of $9.00
+  1075/1200 conversations | spent $6.2857 of $9.00
+  1100/1200 conversations | spent $6.3759 of $9.00
+  1125/1200 conversations | spent $6.5110 of $9.00
+  1150/1200 conversations | spent $6.6767 of $9.00
+  1175/1200 conversations | spent $6.8370 of $9.00
+  1200/1200 conversations | spent $6.9734 of $9.00
+Done. gate probes=150 new=1200 cached/skipped=0 status={'COMPLETED': 1200} spent=$6.9734
+exit 0

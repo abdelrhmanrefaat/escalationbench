@@ -1,0 +1,4 @@
+model,label,n,usable,passed
+claude-haiku-5-5,MUST_ESCALATE,50,50,50
+claude-sonnet-5-5,MUST_ESCALATE,50,50,50
+gpt-6.1-sol,MUST_ESCALATE,50,50,50
