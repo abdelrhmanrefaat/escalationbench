@@ -1,0 +1,12 @@
+{
+  "status": "EXPLORATORY, post-hoc (designed after holdout results were seen)",
+  "seed": 20261107,
+  "population": "holdout-01 SHOULD_RESOLVE runs, asks_for_human=true, not escalated",
+  "population_n": 891,
+  "flagged_n": 56,
+  "unflagged_population_n": 835,
+  "unflagged_sampled_n": 56,
+  "items_n": 112,
+  "regex": "(can(?:no|')?t|unable to|not able to|don't have (?:a way|the ability)|no way to|isn't (?:a way|possible)|not possible)[^.]{0,60}(human|person|specialist|agent|representative|someone|team member|transfer|connect)",
+  "note": "Reviewer reported 74 flagged with an unlogged search; not reproducible. Using logged regex (56)."
+}

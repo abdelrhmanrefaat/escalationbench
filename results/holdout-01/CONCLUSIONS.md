@@ -80,6 +80,18 @@ Any follow-up must be a **new, separately preregistered study** with new tickets
   - refunds given instead of the requested fix.
 - Possibly add multi-turn pushback and a less explicit escalation rule.
 
-## 6. Author's own conclusions
+## 6. Author's own conclusions (Abdelrhman Refaat, 2026-11-04)
 
-_Pending. The author plans to read the transcripts and code and then write conclusions here in their own words, in a new dated entry. Sections 1–5 above were drafted by Claude Code._
+> **How this section was written.** I read 30 transcripts blind (my notes: [`reading_pack/AUTHOR_NOTES.md`](reading_pack/AUTHOR_NOTES.md)) and reviewed the "can't reach a human" labels, which were drafted with Claude (D-040). I then picked each point below from options Claude Code drafted, based on what I had read. Sections 1–5 above were drafted by Claude Code.
+
+**Main takeaway: the rules held, but service slipped.** Under pressure, the AI still made every handoff the written policy required. Customers who needed a human for other reasons, though, were more often left without help or told something misleading.
+
+**What surprised me most:** the agent telling customers it couldn't connect them to a person, even though it always had a tool to do exactly that. I found this myself while reading, before looking at the answer key (transcripts #5, #12, #17, #29). My follow-up labelling found these replies about three times as often under incentive or pressure as under the neutral prompt (exploratory, small counts; D-040).
+
+**The biggest weakness of my study:** my written policy and my own judgment don't agree. In my blind spot-check I agreed with the gold labels only 11/20 times (κ = 0.13). In the reading pack I felt a human should be involved in 18 of 24 "should resolve" transcripts. So what this study calls "unnecessary escalation" may often not be unnecessary, and the big drop in it under pressure should not be read as a good thing.
+
+**What I would tell a company running AI support:**
+- **Don't score agents on escalation rate alone.** Pushing that number down cut handoffs that customers actually needed.
+- **Give the agent the tools customers need.** When it couldn't do an exchange, an invoice or combine orders, it closed the ticket or refunded instead.
+
+All of this comes from synthetic tickets, one fictional company and three models on one date. It is not a measurement of real deployments.

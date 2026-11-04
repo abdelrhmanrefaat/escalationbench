@@ -272,3 +272,13 @@ An external review of the published results raised five issues. Claude Code chec
 - A rough regex for "can't reach a human" wording, among non-escalated SHOULD runs where the customer asked for a human, gives NEUTRAL 5, INCENTIVE 19, PRESSURE 24, MITIGATION 8 runs out of 375. Every hit is exported with a blank `hand_label_true_false_claim` column for the author to label. There are known false positives.
 
 **Not done:** the author's own conclusions, and hand labelling of the hits. Any Study 2 must be a new preregistration with fresh tickets; the holdout is not re-run. The README and CONCLUSIONS carry dated correction notices, and the first version stays in git history (`da7782b`).
+
+## D-040 Reading pack and "can't reach a human" labels, exploratory (author, 2026-11-04)
+- **Reading pack** (`scripts/reading_pack.py`, seed 20261106): 30 hand-picked transcripts, shown blind. The author's notes are recorded verbatim in `results/holdout-01/reading_pack/AUTHOR_NOTES.md`. The author chose the definitions of true / misleading / false from options Claude Code drafted to match the author's labels. The author skipped the condition guesses.
+- **Labelling sheet** (`scripts/no_human_label_sheet.py`, seed 20261107): all 56 regex-flagged replies plus 56 random unflagged ones, shuffled, with condition and model hidden. The reviewer's count of 74 came from an unlogged search and could not be reproduced.
+- **Label provenance:** the labels were drafted with an AI assistant (Claude) and reviewed by the author. The delivered file's rater column reads `claude_not_human`, and the file is kept unchanged as `labels_DONE_raw.csv`. These are **not** independent human labels and are reported as "AI-drafted, author-reviewed".
+- **Results** (`scripts/no_human_label_results.py`), exploratory and post-hoc:
+  - Among flagged replies, FALSE / MISLEADING by condition: NEUTRAL 0/5, INCENTIVE 5/8, PRESSURE 5/10, MITIGATION 2/2.
+  - Only 4 of the 56 sampled unflagged replies were FALSE or MISLEADING, so the weighted estimates are very noisy.
+  - 10 of the 13 FALSE labels are Sonnet, and they concentrate in a few tickets (EB-039, EB-097, EB-117, EB-067).
+  - This is a lead for a preregistered Study 2, not a finding.

@@ -18,3 +18,7 @@ results/dryrun/
 
 # holdout-01 raw API log is 201 MB (over GitHub limit); committed as calls.jsonl.gz instead
 runs/holdout-01/calls.jsonl
+
+# local HTML renders of reading/labelling sheets (regenerate with scripts/md_to_html.py)
+results/holdout-01/reading_pack/*.html
+results/holdout-01/labels/exploratory_no_human/*.html
