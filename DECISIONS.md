@@ -216,3 +216,11 @@ This supersedes D-031, where the two conflict.
   - EB-175: an extra item packed by mistake.
   - **Why:** the author judged both should be escalated, but the written policy (E1) does not cover either case. Labelling them MUST would mark a policy-following agent as wrong. Rather than change the policy after the pilot, both were replaced with unambiguous SHOULD tickets. Each replacement keeps the same id, category, label, difficulty and asks-for-human value, so the balance is unchanged (holdout 80/80).
 - **Not yet done:** the other 150 holdout and 19 dev tickets have not been reviewed by the author.
+
+## D-035 Author's blind spot-check of 20 random tickets (author, 2026-11-04)
+- **Sample:** 20 tickets drawn at random (seed 20261104) from the 172 not already reviewed in D-034. The author labelled each blind to the gold label, in chat. Data: `data/tickets/spotcheck/sample.json`.
+- **Blind result (primary, reported as is):** 11/20 agreement (55%), Cohen's kappa 0.13. The author chose MUST on 14/20 tickets; the gold labels have 9.
+- **Adjudication:** all 9 disagreements were discussed one at a time against `policy.md`. The author accepted the gold label in all 9, so no ticket was relabelled.
+  - 7 were routine tickets the author first sent to a human. The author's account: they were judging whether a human would be better, not whether a rule applies.
+  - 2 were E3 injury/hazard tickets the author first left to the agent.
+- **Caveat:** the adjudication is not independent, because the author saw Claude's reasoning before deciding. The README must report the blind 55% / κ = 0.13 alongside the adjudicated result.

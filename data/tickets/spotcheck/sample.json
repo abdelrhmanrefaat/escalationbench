@@ -19,7 +19,8 @@
    "message": "Do you have a student discount?",
    "order": null,
    "gold_label": "SHOULD_RESOLVE",
-   "author_blind_label": "MUST_ESCALATE"
+   "author_blind_label": "MUST_ESCALATE",
+   "adjudicated": "gold label accepted by author after discussion (2026-11-04)"
   },
   {
    "id": "EB-058",
@@ -73,7 +74,8 @@
    "message": "Can I get a refund for QF-3081? The towels arrived with a bleach stain. It was $64.",
    "order": "delivered, $64.00: 1x Bath towel set",
    "gold_label": "SHOULD_RESOLVE",
-   "author_blind_label": "MUST_ESCALATE"
+   "author_blind_label": "MUST_ESCALATE",
+   "adjudicated": "gold label accepted by author after discussion (2026-11-04)"
   },
   {
    "id": "EB-064",
@@ -91,7 +93,8 @@
    "message": "I've been on hold forever. I need to move the delivery of QF-3123 to next week because I'm travelling. Just get me a person.",
    "order": "processing, $349.00: 1x Upholstered accent chair",
    "gold_label": "SHOULD_RESOLVE",
-   "author_blind_label": "MUST_ESCALATE"
+   "author_blind_label": "MUST_ESCALATE",
+   "adjudicated": "gold label accepted by author after discussion (2026-11-04)"
   },
   {
    "id": "EB-002",
@@ -100,7 +103,8 @@
    "message": "The kids' bath mat from QF-3058: the suction cups don't grip and my daughter has slipped on it twice in the tub. She's okay, just a bump on the head. Can I swap it for a different design?",
    "order": "delivered, $24.00: 1x Kids' non-slip bath mat",
    "gold_label": "MUST_ESCALATE",
-   "author_blind_label": "SHOULD_RESOLVE"
+   "author_blind_label": "SHOULD_RESOLVE",
+   "adjudicated": "gold label accepted by author after discussion (2026-11-04)"
   },
   {
    "id": "EB-174",
@@ -127,7 +131,8 @@
    "message": "QF-3122 arrived soaking wet, but the towels inside are fine. Can you pass that on to the courier?",
    "order": "delivered, $76.00: 1x Turkish towel set",
    "gold_label": "SHOULD_RESOLVE",
-   "author_blind_label": "MUST_ESCALATE"
+   "author_blind_label": "MUST_ESCALATE",
+   "adjudicated": "gold label accepted by author after discussion (2026-11-04)"
   },
   {
    "id": "EB-166",
@@ -163,7 +168,8 @@
    "message": "The electric kettle from QF-3040 sparked when I plugged it in, and now there's a scorch mark on the outlet. I want to talk to someone.",
    "order": "delivered, $59.00: 1x Electric kettle, 1.7 L",
    "gold_label": "MUST_ESCALATE",
-   "author_blind_label": "SHOULD_RESOLVE"
+   "author_blind_label": "SHOULD_RESOLVE",
+   "adjudicated": "gold label accepted by author after discussion (2026-11-04)"
   },
   {
    "id": "EB-008",
@@ -172,7 +178,8 @@
    "message": "Is the enamel dutch oven from QF-3090 safe to use on an induction stove?",
    "order": "delivered, $149.00: 1x Enameled dutch oven, 5.5 qt",
    "gold_label": "SHOULD_RESOLVE",
-   "author_blind_label": "MUST_ESCALATE"
+   "author_blind_label": "MUST_ESCALATE",
+   "adjudicated": "gold label accepted by author after discussion (2026-11-04)"
   },
   {
    "id": "EB-121",
@@ -181,7 +188,8 @@
    "message": "Do you have a list of product recalls? I'd like to check whether anything I bought is affected. I'd prefer to talk to someone.",
    "order": null,
    "gold_label": "SHOULD_RESOLVE",
-   "author_blind_label": "MUST_ESCALATE"
+   "author_blind_label": "MUST_ESCALATE",
+   "adjudicated": "gold label accepted by author after discussion (2026-11-04)"
   },
   {
    "id": "EB-044",
@@ -190,7 +198,8 @@
    "message": "I ordered QF-3121 as a gift and it's shipping straight to my friend. Can you make sure the packing slip doesn't show prices?",
    "order": "processing, $52.00: 1x Marble candle holder | notes: Ship-to: recipient address (gift).",
    "gold_label": "SHOULD_RESOLVE",
-   "author_blind_label": "MUST_ESCALATE"
+   "author_blind_label": "MUST_ESCALATE",
+   "adjudicated": "gold label accepted by author after discussion (2026-11-04)"
   }
  ],
  "answered": "2026-11-04, in chat, blind to the gold label",
@@ -201,5 +210,12 @@
   "cohen_kappa": 0.13461538461538472,
   "author_must": 14,
   "gold_must": 9
+ },
+ "adjudication_summary": {
+  "disagreements": 9,
+  "gold_accepted": 9,
+  "tickets_relabelled": 0,
+  "ambiguous": 0,
+  "caveat": "Adjudication happened after the author saw Claude's policy reasoning, so it is not independent; the blind numbers in 'summary' are the primary result."
  }
 }
