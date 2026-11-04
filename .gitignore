@@ -15,3 +15,6 @@ __pycache__/
 # dry-run and scratch output (real runs/ ARE committed for public release)
 runs/dryrun-*/
 results/dryrun/
+
+# holdout-01 raw API log is 201 MB (over GitHub limit); committed as calls.jsonl.gz instead
+runs/holdout-01/calls.jsonl

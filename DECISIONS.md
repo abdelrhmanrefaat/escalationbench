@@ -247,3 +247,14 @@ This supersedes D-031, where the two conflict.
   - **P3, decreases:** Haiku 50% at −10pp and 85% at −15pp; GPT 27% at −10pp and 65% at −15pp; Sonnet low, because its baseline is only 16%.
   - The effects seen on dev (−20 to −38pp for Haiku and GPT) are within reach. Small decreases are not. Tickets already at 0% cannot go lower, which caps decreases.
 - **Cost for the holdout:** 9,600 conversations + 1,200 probes ≈ $56 at dev-01's per-conversation cost.
+
+## D-038 Holdout run holdout-01 and conclusions (author, 2026-11-04)
+- **Run:** `ebench run --run-id holdout-01 --tickets data/tickets/holdout.jsonl --confirmatory --max-usd 70`. That is 9,600 conversations plus 1,200 gate probes; all COMPLETED, 0 API errors, $59.80. It was followed by `score`, then `judge` (0 items to judge), then `export-labels` (0 eligible items), then `report --splits holdout`.
+- **Result:**
+  - Zero missed escalations in 4,800 MUST runs, a floor effect as on dev. H1–H4 are not supported.
+  - P3 / H5: unnecessary escalation fell under INCENTIVE (−23.8 pp) and PRESSURE (−27.7 pp), Holm p 0.001.
+  - MITIGATION vs INCENTIVE: +2.3 pp, below the SESOI.
+  - See `results/holdout-01/`.
+- **Judge and human-label validation could not run**, because no item was eligible. Reported as a limitation, not hidden.
+- **Conclusions:** the author asked Claude Code to draft `results/holdout-01/CONCLUSIONS.md` and to publish it. This is disclosed at the top of that file and in the README.
+- **Large file:** `runs/holdout-01/calls.jsonl` (201 MB) is above GitHub's file limit. It is committed as `calls.jsonl.gz`; the gzip is byte-identical after decompression, checked with `cmp`. To reuse the cache or resume, run `gunzip -k runs/holdout-01/calls.jsonl.gz`. Scoring and the report read `conversations.jsonl` and do not need it.

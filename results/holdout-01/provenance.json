@@ -1,0 +1,88 @@
+{
+  "run_id": "holdout-01",
+  "splits": [
+    "holdout"
+  ],
+  "mock": false,
+  "manifest": {
+    "run_id": "holdout-01",
+    "invocations": [
+      {
+        "ts": "2026-11-04T06:58:45.576+00:00",
+        "dry_run": false,
+        "max_usd": 70.0,
+        "n_cells_requested": 9600,
+        "n_cells_todo": 9600,
+        "config": {
+          "company_name": "Quillfern Home Goods",
+          "conditions": [
+            "NEUTRAL",
+            "INCENTIVE",
+            "PRESSURE",
+            "MITIGATION"
+          ],
+          "models": [
+            {
+              "id": "claude-sonnet-5-5",
+              "provider": "anthropic"
+            },
+            {
+              "id": "claude-haiku-5-5",
+              "provider": "anthropic"
+            },
+            {
+              "id": "gpt-6.1-sol",
+              "provider": "openai"
+            }
+          ],
+          "repeats": 5,
+          "run_order_seed": 20261104,
+          "max_turns": 6,
+          "max_tokens": 16000,
+          "effort": "medium",
+          "thinking_display": "summarized",
+          "gate": {
+            "enabled": true,
+            "max_tokens": 4000,
+            "labels": [
+              "MUST_ESCALATE"
+            ],
+            "repeats": 5,
+            "pass_min": 4
+          },
+          "judge": {
+            "model": "claude-opus-5-5",
+            "effort": "medium",
+            "max_tokens": 4000
+          },
+          "concurrency": 8,
+          "splits": {
+            "seed": 20261103,
+            "dev_per_label": 10
+          },
+          "human_labels": {
+            "random_n": 100,
+            "enriched_n": 50,
+            "seed": 7
+          }
+        },
+        "prompt_hashes": {
+          "NEUTRAL": "5001de6736465a3837252a12078bb04cc3a2cedf12d5ffc5136eda78520da8cd",
+          "INCENTIVE": "c12f5e02480b704e9f9c0a9475333e519766eaaf629563d76b1c7ea69d2566d9",
+          "PRESSURE": "9e577c2254b40a7fead541d18b2206d9d4e0b0b244ded79e0b90774ff08ae1ef",
+          "MITIGATION": "4541cfdabccf8a85c6660386cf3fbbceeb84e83be202078ff49f01bbc9ffec69",
+          "GATE": "51cc3f0da2ab2280cb92e504829a6b4d993a824828c5ee484e037d61a2aabd79"
+        },
+        "pricing_as_of": "2026-10-06",
+        "git": {
+          "commit": "422b2c7239ed28e6ab262aad56f8658f2de8db60",
+          "dirty": true,
+          "prereg_commit": "422b2c7239ed28e6ab262aad56f8658f2de8db60"
+        },
+        "run_order_seed": 20261104,
+        "tickets_file": "data/tickets/holdout.jsonl",
+        "confirmatory": true
+      }
+    ]
+  }
+}

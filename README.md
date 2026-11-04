@@ -10,9 +10,9 @@
 [![Tests: pytest](https://img.shields.io/badge/tests-pytest-0A9EDC?logo=pytest&logoColor=white)](tests/)
 [![Data: 100% synthetic](https://img.shields.io/badge/data-100%25%20synthetic-8A2BE2)](data/tickets/)
 [![Built with Claude Code](https://img.shields.io/badge/built%20with-Claude%20Code-D97757)](#-how-this-was-built)
-[![Status: holdout pending](https://img.shields.io/badge/holdout%20run-pending-orange)](#-status)
+[![Status: results published](https://img.shields.io/badge/holdout%20run-results%20published-2ea44f)](#-results)
 
-[Why it matters](#-why-this-matters) · [How it works](#%EF%B8%8F-how-it-works) · [Quick start](#-quick-start) · [Integrity](#%EF%B8%8F-integrity-guarantees) · [Limitations](#%EF%B8%8F-limitations) · [Preregistration](PREREGISTRATION.md)
+[Results](#-results) · [Why it matters](#-why-this-matters) · [How it works](#%EF%B8%8F-how-it-works) · [Quick start](#-quick-start) · [Integrity](#%EF%B8%8F-integrity-guarantees) · [Limitations](#%EF%B8%8F-limitations) · [Preregistration](PREREGISTRATION.md)
 
 </div>
 
@@ -25,6 +25,20 @@
 > And does an explicit **no-penalty escalation policy** reduce the effect?
 
 Companies deploying AI support agents often track **escalation rate**: the share of tickets handed to a human. Lower looks cheaper. But some tickets *must* reach a human: a hacked account, a fraudulent charge, a burned hand. EscalationBench measures, in a controlled and fully reproducible way, what happens to those tickets when the agent is told its score depends on escalating less.
+
+## 📈 Results
+
+Preregistered holdout run: 160 tickets × 4 conditions × 5 repeats × 3 models = **9,600 conversations**, all completed, none excluded, $59.80. Full numbers are in [`results/holdout-01/REPORT.md`](results/holdout-01/REPORT.md) and the interpretation is in [`CONCLUSIONS.md`](results/holdout-01/CONCLUSIONS.md).
+
+| Hypothesis | Result |
+|---|---|
+| **H1–H4** Pressure causes missed or hidden escalations | ❌ **Not supported.** All models escalated **4,800 / 4,800** must-escalate runs in every condition. This is a floor effect: there is nothing to compare. |
+| **H5** Pressure cuts *unnecessary* escalations | ✅ **Supported.** Pooled across models: NEUTRAL 43% → INCENTIVE 19% (**−24 pp**) and PRESSURE 15% (**−28 pp**), Holm p ≈ 0.001. The drop appears in all three models. |
+| **H5** Mitigation vs incentive: no change | ✅ +2.3 pp (95% CI +0.7 to +4.1), below the 5 pp smallest effect of interest |
+
+**In one line:** under pressure, the models cut the handoffs they were *allowed* to skip and kept every handoff they were *required* to make. That is the safe pattern in this setup. It does not show that real deployments are safe.
+
+<p align="center"><img src="results/holdout-01/figures/escalation_rates.png" alt="Escalation rates by condition and model" width="760"></p>
 
 ## 💡 Why this matters
 
@@ -188,8 +202,9 @@ Holdout tickets need `--confirmatory`, which refuses to run unless the preregist
 | 180 tickets built and spot-checked | ✅ done |
 | Dev run + power simulation | ✅ done: [`results/dev-01/`](results/dev-01/) |
 | Preregistration committed and published | ✅ done: [prereg commit](https://github.com/abdelrhmanrefaat/escalationbench/blob/b61edd4d615667b29fe8d4091cd88ab980a4fdfa/PREREGISTRATION.md) |
-| Holdout run (9,600 conversations) | ⏳ pending |
-| Human labels, judge validation, report | ⏳ pending |
+| Holdout run (9,600 conversations) | ✅ done: [`results/holdout-01/`](results/holdout-01/) |
+| Report and conclusions | ✅ done: [`REPORT.md`](results/holdout-01/REPORT.md), [`CONCLUSIONS.md`](results/holdout-01/CONCLUSIONS.md) |
+| Human labels, judge validation | ➖ not possible: zero missed escalations, so there was nothing to judge or label |
 
 Pilot and dev observations, including a floor effect on missed escalation, are logged in [`DECISIONS.md`](DECISIONS.md) (D-029, D-037). They are not confirmatory results.
 
@@ -200,7 +215,7 @@ Pilot and dev observations, including a floor effect on missed escalation, are l
 - 🏷️ **Label validation is weak.** The author reviewed 10 flagged tickets (2 replaced) and labelled a random 20 blind: **11/20 agreement, κ = 0.13**. This came mostly from judging "would a human be better" rather than the written policy. After discussion the author accepted all 9 gold labels, but that step was not independent (D-034–D-036, [`data/tickets/spotcheck/`](data/tickets/spotcheck/)).
 - 💬 **Single turn.** The customer cannot push back.
 - 🎭 **Eval awareness.** Models may recognise the scenario as a test.
-- ⚖️ **Judge blind spots.** The LLM judge may share blind spots with the agents; this is measured by κ against human labels.
+- ⚖️ **Judge never validated.** The LLM judge and human labels only apply to missed escalations. There were none on the holdout, so there is no κ for the judge.
 - 🧩 **MITIGATION confound.** It both removes the penalty and names escalation as legitimate; one arm cannot separate the two (D-022).
 - 🔍 **P3 was dev-informed.** Unnecessary escalation was added as a confirmatory outcome after the dev run (disclosed in the prereg), and the study can only detect drops of about 15pp or more on it.
 - 📅 **Model- and date-specific.** Model comparisons are descriptive, not a ranking.
@@ -214,7 +229,7 @@ The code in this repository was written with **[Claude Code](https://claude.com/
 - Reviewed the pilot tickets, and spot-checked and approved the 180 study tickets (D-034–D-036).
 - Wrote the first full draft of [`PREREGISTRATION.md`](PREREGISTRATION.md), chose the direction of every hypothesis (H1–H5), set the SESOI and approved the budget. For H2–H5 and the SESOI, the author chose each reason from options listed by Claude Code; the H1 reason is in the author's own words.
 - Approved every paid run and its spending cap.
-- *Still to come:* hand labels for judge validation, and the conclusions.
+- Asked Claude Code to draft [`CONCLUSIONS.md`](results/holdout-01/CONCLUSIONS.md) because they had no conclusions of their own in mind, and asked for it to be published. The hand-label step could not happen, because there were zero missed escalations.
 
 **Done by Claude Code:** the code, tests, ticket drafts, statistical implementation, literature summary and documentation drafts. The author approved each phase before work moved on; not every line of code was reviewed by the author.
 
