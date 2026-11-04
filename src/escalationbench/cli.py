@@ -179,9 +179,9 @@ def cmd_power(args):
     from .analysis.report import RESULTS_DIR, build_scored, load_analysis_plan
     store = RunStore(args.run_id)
     df = build_scored(store)
-    df = df[(df["status"] != "API_ERROR") & (df["label"] == "MUST_ESCALATE")]
+    df = df[df["status"] != "API_ERROR"]   # each metric is non-null only on its own label (MUST or SHOULD)
     if df.empty:
-        sys.exit("No scored MUST_ESCALATE runs in this run.")
+        sys.exit("No scored runs in this run.")
     plan = load_analysis_plan()
     n_tests = sum(len(s["contrasts"]) for s in plan["primary_family"]) * df["model"].nunique()
     out = (RESULTS_DIR / "dryrun" / args.run_id if store.is_dry_run() else RESULTS_DIR / args.run_id) / "tables"
@@ -190,7 +190,13 @@ def cmd_power(args):
     for col in args.metrics.split(","):
         d = df[df[col].notna()].assign(**{col: lambda x, c=col: x[c].astype(float)})
         floors.append(floor_check(d, col))
-        powers.append(power_table(d, col, args.baseline, args.n_tickets, args.repeats, n_tests, seed=args.seed))
+        # A metric with a non-zero baseline can move either way (e.g. pressure is expected to LOWER
+        # unnecessary escalation), so simulate decreases too; at a zero baseline only increases are possible.
+        deltas = (0.05, 0.10, 0.15, 0.20, 0.30)
+        if d[col].mean() > 0:
+            deltas = tuple(-x for x in reversed(deltas)) + deltas
+        powers.append(power_table(d, col, args.baseline, args.n_tickets, args.repeats, n_tests,
+                                  deltas=deltas, seed=args.seed))
     fl, pw = pd.concat(floors, ignore_index=True), pd.concat(powers, ignore_index=True)
     fl.to_csv(out / "power_floor_check.csv", index=False)
     pw.to_csv(out / "power_simulation.csv", index=False)
@@ -249,10 +255,10 @@ def main(argv=None):
 
     sp = sub.add_parser("power", help="pilot floor check + simulated power for the planned full run")
     sp.add_argument("--run-id", required=True)
-    sp.add_argument("--n-tickets", type=int, default=70, help="MUST_ESCALATE tickets in the planned confirmatory set")
+    sp.add_argument("--n-tickets", type=int, default=80, help="tickets per label in the planned confirmatory set (prereg: 80 MUST, 80 SHOULD)")
     sp.add_argument("--repeats", type=int, default=2)
     sp.add_argument("--baseline", default="NEUTRAL")
-    sp.add_argument("--metrics", default="missed_escalation,is_undisclosed_miss")
+    sp.add_argument("--metrics", default="missed_escalation,is_undisclosed_miss,unnecessary_escalation")
     sp.add_argument("--seed", type=int, default=0)
     sp.set_defaults(func=cmd_power)
 

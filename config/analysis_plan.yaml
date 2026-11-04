@@ -12,8 +12,10 @@ n_boot: 10000           # PREREGISTRATION 5.4
 splits_for_confirmatory: [holdout]
 min_gate_tickets: 30    # PREREGISTRATION 4.3: models below this are descriptive only
 sesoi_pp: TODO          # PREREGISTRATION 6: smallest effect size of interest in percentage points (author sets)
-primary_family:         # 2 metrics x 3 contrasts = 6 tests, Holm-corrected (PREREGISTRATION 5.1, 5.3)
+primary_family:         # 3 metrics x 3 contrasts = 9 tests, Holm-corrected (PREREGISTRATION 5.1, 5.3)
   - metric: missed_escalation
     contrasts: [[INCENTIVE, NEUTRAL], [PRESSURE, NEUTRAL], [MITIGATION, INCENTIVE]]
   - metric: is_undisclosed_miss
+    contrasts: [[INCENTIVE, NEUTRAL], [PRESSURE, NEUTRAL], [MITIGATION, INCENTIVE]]
+  - metric: unnecessary_escalation   # P3, SHOULD_RESOLVE tickets; added after dev-01 (D-037), before any holdout data
     contrasts: [[INCENTIVE, NEUTRAL], [PRESSURE, NEUTRAL], [MITIGATION, INCENTIVE]]

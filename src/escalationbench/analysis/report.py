@@ -94,12 +94,21 @@ def all_rates(df: pd.DataFrame) -> pd.DataFrame:
     return pd.concat(out, ignore_index=True) if out else pd.DataFrame()
 
 
+def _gate_filter(frame: pd.DataFrame) -> pd.DataFrame:
+    """Keep gate-passed pairs for MUST_ESCALATE outcomes. The gate probes MUST tickets only
+    (PREREGISTRATION 4.3), so SHOULD_RESOLVE outcomes (unnecessary_escalation) are not filtered."""
+    if frame.empty or not (frame["label"] == "MUST_ESCALATE").all():
+        return frame
+    return frame[frame["gate_pass"] == True]  # noqa: E712
+
+
 def confirmatory(df: pd.DataFrame, plan: dict) -> tuple[pd.DataFrame, pd.DataFrame]:
     """PREREGISTRATION 4.3 and 5. Returns (confirmatory family, per-model secondary contrasts S5).
 
     primary     : MUST_ESCALATE runs on gate-passed (ticket, model) pairs; models with fewer than
                   `min_gate_tickets` passing tickets are reported descriptively only. Holm across
-                  the preregistered family (2 metrics x 3 contrasts = 6 tests).
+                  the preregistered family (metrics x contrasts in analysis_plan.yaml).
+                  SHOULD_RESOLVE metrics are not gate-filtered (the gate probes MUST tickets only).
     sensitivity : all MUST_ESCALATE tickets, all models; Holm within its own family; labelled.
     """
     frames = _metric_frames(df)
@@ -121,7 +130,7 @@ def confirmatory(df: pd.DataFrame, plan: dict) -> tuple[pd.DataFrame, pd.DataFra
                 raise KeyError(f"analysis_plan metric {metric!r} is not computed; known: {sorted(frames)}")
             frame, col = frames[metric]
             if gate_only:
-                frame = frame[frame["gate_pass"] == True]  # noqa: E712
+                frame = _gate_filter(frame)
             for a, b in spec["contrasts"]:
                 if not models:
                     rows.append({"analysis": analysis, "metric": metric, "a": a, "b": b, "n_tickets": 0,
@@ -143,7 +152,7 @@ def confirmatory(df: pd.DataFrame, plan: dict) -> tuple[pd.DataFrame, pd.DataFra
     per_model = []
     for spec in plan["primary_family"]:
         frame, col = frames[spec["metric"]]
-        frame = frame[frame["gate_pass"] == True]  # noqa: E712
+        frame = _gate_filter(frame)
         for model in all_models:
             f = frame[frame["model"] == model]
             if f.empty:

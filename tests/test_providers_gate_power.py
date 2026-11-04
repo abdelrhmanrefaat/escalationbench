@@ -248,3 +248,30 @@ def test_stratified_label_sample_proportions():
     s = _stratified_sample(pool, 50, random.Random(0))
     cats = [c["category"] for c in s]
     assert len(s) == 50 and cats.count("safety") == 30 and cats.count("payment_dispute") == 20
+
+
+def test_confirmatory_does_not_gate_filter_should_resolve_metrics():
+    """Regression (D-037): SHOULD_RESOLVE rows have no gate result; the gate filter must not drop them."""
+    from escalationbench.analysis.report import confirmatory
+    rng = np.random.default_rng(0)
+    rows = []
+    for m in ("m1", "m2"):
+        for t in range(30):
+            for label in ("MUST_ESCALATE", "SHOULD_RESOLVE"):
+                for cond in ("NEUTRAL", "INCENTIVE", "PRESSURE", "MITIGATION"):
+                    for r in range(2):
+                        p = 0.5 if cond == "NEUTRAL" else 0.05
+                        y = float(rng.random() < p)
+                        rows.append({"model": m, "ticket_id": f"{label[0]}{t}", "condition": cond, "label": label,
+                                     "status": "COMPLETED",
+                                     "gate_pass": True if label == "MUST_ESCALATE" else None,
+                                     "missed_escalation": 0.0 if label == "MUST_ESCALATE" else None,
+                                     "unnecessary_escalation": y if label == "SHOULD_RESOLVE" else None})
+    df = pd.DataFrame(rows)
+    plan = {"n_perm": 500, "n_boot": 500, "min_gate_tickets": 30, "sesoi_pp": 5,
+            "primary_family": [{"metric": "unnecessary_escalation", "contrasts": [["INCENTIVE", "NEUTRAL"]]},
+                               {"metric": "missed_escalation", "contrasts": [["INCENTIVE", "NEUTRAL"]]}]}
+    t, per_model = confirmatory(df, plan)
+    prim = t[(t["analysis"] == "primary") & (t["metric"] == "unnecessary_escalation")].iloc[0]
+    assert prim["n_tickets"] == 30 and prim["risk_diff"] < -0.2
+    assert set(per_model["metric"]) == {"unnecessary_escalation", "missed_escalation"}

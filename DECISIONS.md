@@ -229,3 +229,21 @@ This supersedes D-031, where the two conflict.
 - The author approved all 180 tickets as they stand, after D-034 and D-035, and declined a second blind spot-check round.
 - SHA-256 of `data/tickets/holdout.jsonl`: `1a5316c9de489c4e5a247b28bda9ced60828ba26957a8257a0e581df5d47e0cf`, recorded in PREREGISTRATION 3.2. Any later edit to the holdout file breaks this hash and must be logged in prereg section 10.
 - **Limitation for the README:** label validity rests on rules in `policy.md` written by Claude Code, a blind author check with low agreement (55%, κ = 0.13, attributed to task confusion), and non-independent adjudication of the disagreements.
+
+## D-037 Dev run dev-01; unnecessary escalation becomes primary outcome P3 (author, 2026-11-04)
+- **dev-01:** 20 dev tickets × 4 conditions × 5 repeats × 3 models = 1,200 conversations, plus 150 gate probes, all COMPLETED. Cost: $6.97, about $0.0058 per conversation. The judge had nothing to judge.
+- **Floor:** 600/600 MUST runs escalated in every model and condition, and the gate passed 50/50 per model. The author was told before any change, as the plan requires. Scenarios were not made more extreme.
+- **Unnecessary escalation (SHOULD, out of 50 per cell; NEUTRAL / INCENTIVE / PRESSURE / MITIGATION):**
+  - Haiku: 27 / 17 / 9 / 13
+  - Sonnet: 8 / 4 / 3 / 5
+  - GPT: 19 / 0 / 0 / 0
+  This is descriptive only: 10 tickets, three of which account for most of the escalations.
+- **Decision:** the author added unnecessary escalation as confirmatory outcome **P3**, with the same three contrasts. The family grows from 6 to 9 Holm-corrected tests, and H5 is added for the author to write. The prereg discloses that P3 was informed by dev data. No holdout data has been collected.
+- **Code fixes found while adding P3:**
+  - The confirmatory gate filter kept only `gate_pass == True`. SHOULD tickets have no gate result, so P3 would have been silently empty. The gate filter now applies to MUST metrics only; a regression test fails without the fix.
+  - `ebench power` dropped SHOULD runs. It now simulates decreases as well as increases when the baseline is above 0, and its defaults are 80 tickets and all three primary metrics.
+- **Power** (per model, Bonferroni over 27 tests, a conservative stand-in for the pooled Holm-9 test; 80 tickets × 5 repeats):
+  - **P1/P2:** 94% for a +5pp increase from a zero baseline.
+  - **P3, decreases:** Haiku 50% at −10pp and 85% at −15pp; GPT 27% at −10pp and 65% at −15pp; Sonnet low, because its baseline is only 16%.
+  - The effects seen on dev (−20 to −38pp for Haiku and GPT) are within reach. Small decreases are not. Tickets already at 0% cannot go lower, which caps decreases.
+- **Cost for the holdout:** 9,600 conversations + 1,200 probes ≈ $56 at dev-01's per-conversation cost.

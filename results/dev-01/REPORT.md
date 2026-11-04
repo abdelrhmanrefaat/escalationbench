@@ -212,29 +212,41 @@ Pooled across included models with equal weight. Risk difference = mean over tic
 | primary | is_undisclosed_miss | INCENTIVE | NEUTRAL | nan | 0 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | no model has >= 30 gate-passed MUST_ESCALATE tickets |
 | primary | is_undisclosed_miss | PRESSURE | NEUTRAL | nan | 0 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | no model has >= 30 gate-passed MUST_ESCALATE tickets |
 | primary | is_undisclosed_miss | MITIGATION | INCENTIVE | nan | 0 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | no model has >= 30 gate-passed MUST_ESCALATE tickets |
+| primary | unnecessary_escalation | INCENTIVE | NEUTRAL | nan | 0 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | no model has >= 30 gate-passed MUST_ESCALATE tickets |
+| primary | unnecessary_escalation | PRESSURE | NEUTRAL | nan | 0 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | no model has >= 30 gate-passed MUST_ESCALATE tickets |
+| primary | unnecessary_escalation | MITIGATION | INCENTIVE | nan | 0 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | no model has >= 30 gate-passed MUST_ESCALATE tickets |
 | sensitivity | missed_escalation | INCENTIVE | NEUTRAL | claude-haiku-5-5,claude-sonnet-5-5,gpt-6.1-sol | 10 | 0.000 | 150.000 | 0.000 | 150.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |  | 0.278 | 0.278 | 1.000 | 1.000 | SESOI not set: cannot classify a null; possible floor effect |
 | sensitivity | missed_escalation | PRESSURE | NEUTRAL | claude-haiku-5-5,claude-sonnet-5-5,gpt-6.1-sol | 10 | 0.000 | 150.000 | 0.000 | 150.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |  | 0.278 | 0.278 | 1.000 | 1.000 | SESOI not set: cannot classify a null; possible floor effect |
 | sensitivity | missed_escalation | MITIGATION | INCENTIVE | claude-haiku-5-5,claude-sonnet-5-5,gpt-6.1-sol | 10 | 0.000 | 150.000 | 0.000 | 150.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |  | 0.278 | 0.278 | 1.000 | 1.000 | SESOI not set: cannot classify a null; possible floor effect |
 | sensitivity | is_undisclosed_miss | INCENTIVE | NEUTRAL | claude-haiku-5-5,claude-sonnet-5-5,gpt-6.1-sol | 10 | 0.000 | 150.000 | 0.000 | 150.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |  | 0.278 | 0.278 | 1.000 | 1.000 | SESOI not set: cannot classify a null; possible floor effect |
 | sensitivity | is_undisclosed_miss | PRESSURE | NEUTRAL | claude-haiku-5-5,claude-sonnet-5-5,gpt-6.1-sol | 10 | 0.000 | 150.000 | 0.000 | 150.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |  | 0.278 | 0.278 | 1.000 | 1.000 | SESOI not set: cannot classify a null; possible floor effect |
 | sensitivity | is_undisclosed_miss | MITIGATION | INCENTIVE | claude-haiku-5-5,claude-sonnet-5-5,gpt-6.1-sol | 10 | 0.000 | 150.000 | 0.000 | 150.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |  | 0.278 | 0.278 | 1.000 | 1.000 | SESOI not set: cannot classify a null; possible floor effect |
+| sensitivity | unnecessary_escalation | INCENTIVE | NEUTRAL | claude-haiku-5-5,claude-sonnet-5-5,gpt-6.1-sol | 10 | 21.000 | 150.000 | 54.000 | 150.000 | 0.140 | 0.360 | -0.220 | -0.347 | -0.100 | -0.327 | -0.113 | 0.389 | 0.763 | 0.832 | 0.031 | 0.281 | SESOI not set: cannot classify a null |
+| sensitivity | unnecessary_escalation | PRESSURE | NEUTRAL | claude-haiku-5-5,claude-sonnet-5-5,gpt-6.1-sol | 10 | 12.000 | 150.000 | 54.000 | 150.000 | 0.080 | 0.360 | -0.280 | -0.447 | -0.120 | -0.420 | -0.140 | 0.222 | 0.603 | 0.832 | 0.031 | 0.281 | SESOI not set: cannot classify a null |
+| sensitivity | unnecessary_escalation | MITIGATION | INCENTIVE | claude-haiku-5-5,claude-sonnet-5-5,gpt-6.1-sol | 10 | 18.000 | 150.000 | 21.000 | 150.000 | 0.120 | 0.140 | -0.020 | -0.067 | 0.013 | -0.060 | 0.007 | 0.857 | 0.763 | 0.763 | 0.750 | 1.000 | SESOI not set: cannot classify a null |
 
 Supporting mixed model (condition × model + ticket random intercept):
 
-| analysis | metric | a | b | mixed_ok | mixed_note |
-|---|---|---|---|---|---|
-| primary | missed_escalation | INCENTIVE | NEUTRAL | nan | nan |
-| primary | missed_escalation | PRESSURE | NEUTRAL | nan | nan |
-| primary | missed_escalation | MITIGATION | INCENTIVE | nan | nan |
-| primary | is_undisclosed_miss | INCENTIVE | NEUTRAL | nan | nan |
-| primary | is_undisclosed_miss | PRESSURE | NEUTRAL | nan | nan |
-| primary | is_undisclosed_miss | MITIGATION | INCENTIVE | nan | nan |
-| sensitivity | missed_escalation | INCENTIVE | NEUTRAL | False | separation (a condition has 0% or 100%); permutation test only |
-| sensitivity | missed_escalation | PRESSURE | NEUTRAL | False | separation (a condition has 0% or 100%); permutation test only |
-| sensitivity | missed_escalation | MITIGATION | INCENTIVE | False | separation (a condition has 0% or 100%); permutation test only |
-| sensitivity | is_undisclosed_miss | INCENTIVE | NEUTRAL | False | separation (a condition has 0% or 100%); permutation test only |
-| sensitivity | is_undisclosed_miss | PRESSURE | NEUTRAL | False | separation (a condition has 0% or 100%); permutation test only |
-| sensitivity | is_undisclosed_miss | MITIGATION | INCENTIVE | False | separation (a condition has 0% or 100%); permutation test only |
+| analysis | metric | a | b | mixed_ok | mixed_note | mixed_formula | mixed_or | mixed_or_low | mixed_or_high |
+|---|---|---|---|---|---|---|---|---|---|
+| primary | missed_escalation | INCENTIVE | NEUTRAL | nan | nan | nan |  |  |  |
+| primary | missed_escalation | PRESSURE | NEUTRAL | nan | nan | nan |  |  |  |
+| primary | missed_escalation | MITIGATION | INCENTIVE | nan | nan | nan |  |  |  |
+| primary | is_undisclosed_miss | INCENTIVE | NEUTRAL | nan | nan | nan |  |  |  |
+| primary | is_undisclosed_miss | PRESSURE | NEUTRAL | nan | nan | nan |  |  |  |
+| primary | is_undisclosed_miss | MITIGATION | INCENTIVE | nan | nan | nan |  |  |  |
+| primary | unnecessary_escalation | INCENTIVE | NEUTRAL | nan | nan | nan |  |  |  |
+| primary | unnecessary_escalation | PRESSURE | NEUTRAL | nan | nan | nan |  |  |  |
+| primary | unnecessary_escalation | MITIGATION | INCENTIVE | nan | nan | nan |  |  |  |
+| sensitivity | missed_escalation | INCENTIVE | NEUTRAL | False | separation (a condition has 0% or 100%); permutation test only | nan |  |  |  |
+| sensitivity | missed_escalation | PRESSURE | NEUTRAL | False | separation (a condition has 0% or 100%); permutation test only | nan |  |  |  |
+| sensitivity | missed_escalation | MITIGATION | INCENTIVE | False | separation (a condition has 0% or 100%); permutation test only | nan |  |  |  |
+| sensitivity | is_undisclosed_miss | INCENTIVE | NEUTRAL | False | separation (a condition has 0% or 100%); permutation test only | nan |  |  |  |
+| sensitivity | is_undisclosed_miss | PRESSURE | NEUTRAL | False | separation (a condition has 0% or 100%); permutation test only | nan |  |  |  |
+| sensitivity | is_undisclosed_miss | MITIGATION | INCENTIVE | False | separation (a condition has 0% or 100%); permutation test only | nan |  |  |  |
+| sensitivity | unnecessary_escalation | INCENTIVE | NEUTRAL | True | nan | y ~ x * C(model, Sum) | 0.053 | 0.028 | 0.101 |
+| sensitivity | unnecessary_escalation | PRESSURE | NEUTRAL | True | nan | y ~ x * C(model, Sum) | 0.029 | 0.014 | 0.057 |
+| sensitivity | unnecessary_escalation | MITIGATION | INCENTIVE | True | nan | y ~ x * C(model, Sum) | 0.506 | 0.269 | 0.949 |
 
 Per-model contrasts (S5, secondary): `tables/secondary_per_model_contrasts.csv`.
 
