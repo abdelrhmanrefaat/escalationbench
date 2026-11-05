@@ -8,7 +8,7 @@ Sheet = every reply flagged by the regex in scripts/posthoc_holdout_leads.py
 population. Shuffled with a logged seed. Condition, model, ticket id and the
 flag are hidden on the sheet and kept in a separate key file.
 
-Note: the external reviewer reported 74 flagged replies using their own
+Note: the reviewing Claude session reported 74 flagged replies using their own
 unlogged search. That count could not be reproduced. This sheet uses the 56
 from the logged regex.
 

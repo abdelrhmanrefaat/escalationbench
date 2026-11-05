@@ -259,8 +259,8 @@ This supersedes D-031, where the two conflict.
 - **Conclusions:** the author asked Claude Code to draft `results/holdout-01/CONCLUSIONS.md` and to publish it. This is disclosed at the top of that file and in the README.
 - **Large file:** `runs/holdout-01/calls.jsonl` (201 MB) is above GitHub's file limit. It is committed as `calls.jsonl.gz`; the gzip is byte-identical after decompression, checked with `cmp`. To reuse the cache or resume, run `gunzip -k runs/holdout-01/calls.jsonl.gz`. Scoring and the report read `conversations.jsonl` and do not need it.
 
-## D-039 Corrections after external review (author, 2026-11-04)
-An external review of the published results raised five issues. Claude Code checked each against the prompts and raw data, and all five were confirmed:
+## D-039 Corrections after review by a separate Claude session (author, 2026-11-04)
+A review by a separate Claude session of the published results raised five issues. Claude Code checked each against the prompts and raw data, and all five were confirmed:
 1. **NEUTRAL is not neutral.** `config/prompts/neutral.md` adds "or you are genuinely unsure" and "reviewed on … the right outcome". The README and prereg 3.1 summarised it as "escalate when needed". The confound affects contrasts against NEUTRAL; it does not affect MITIGATION vs INCENTIVE.
 2. **"The safe pattern" overclaimed.** Many SHOULD tickets ask for things no tool can do. Under pressure, those tickets were often closed without help or refunded instead (examples: EB-013, EB-155, EB-069).
 3. **Zero-rate bound.** Prereg 5.5 requires the ticket-level bound (about 4.6%); the first CONCLUSIONS said about 1% (run level).
@@ -274,11 +274,35 @@ An external review of the published results raised five issues. Claude Code chec
 **Not done:** the author's own conclusions, and hand labelling of the hits. Any Study 2 must be a new preregistration with fresh tickets; the holdout is not re-run. The README and CONCLUSIONS carry dated correction notices, and the first version stays in git history (`da7782b`).
 
 ## D-040 Reading pack and "can't reach a human" labels, exploratory (author, 2026-11-04)
-- **Reading pack** (`scripts/reading_pack.py`, seed 20261106): 30 hand-picked transcripts, shown blind. The author's notes are recorded verbatim in `results/holdout-01/reading_pack/AUTHOR_NOTES.md`. The author chose the definitions of true / misleading / false from options Claude Code drafted to match the author's labels. The author skipped the condition guesses.
-- **Labelling sheet** (`scripts/no_human_label_sheet.py`, seed 20261107): all 56 regex-flagged replies plus 56 random unflagged ones, shuffled, with condition and model hidden. The reviewer's count of 74 came from an unlogged search and could not be reproduced.
-- **Label provenance:** the labels were drafted with an AI assistant (Claude) and reviewed by the author. The delivered file's rater column reads `claude_not_human`, and the file is kept unchanged as `labels_DONE_raw.csv`. These are **not** independent human labels and are reported as "AI-drafted, author-reviewed".
+- **Reading pack** (`scripts/reading_pack.py`, seed 20261106): 30 hand-picked transcripts, shown blind. *(Corrected by D-041.)* The 30-row notes were written by a separate Claude session, not the author, and are now in `results/holdout-01/reading_pack/CLAUDE_READING_NOTES.md`. The author picked definitions of true / misleading / false from options Claude Code drafted to match those notes. No condition guesses were made.
+- **Labelling sheet** (`scripts/no_human_label_sheet.py`, seed 20261107): all 56 regex-flagged replies plus 56 random unflagged ones, shuffled, with condition and model hidden. The reviewing Claude session's count of 74 came from an unlogged search and could not be reproduced; that session has since agreed the logged 56 should be used.
+- **Label provenance** *(corrected by D-041)*: all 112 labels were produced by a Claude session. The delivered file's rater column reads `claude_not_human`, and the file is kept unchanged as `labels_DONE_raw.csv`. They are **AI labels**. No human has labelled these items, and they are not described as author-reviewed.
 - **Results** (`scripts/no_human_label_results.py`), exploratory and post-hoc:
   - Among flagged replies, FALSE / MISLEADING by condition: NEUTRAL 0/5, INCENTIVE 5/8, PRESSURE 5/10, MITIGATION 2/2.
-  - Only 4 of the 56 sampled unflagged replies were FALSE or MISLEADING, so the weighted estimates are very noisy.
+  - Only 4 of the 56 sampled unflagged replies were FALSE or MISLEADING, so the weighted estimates are very noisy: NEUTRAL 5, INCENTIVE 13, PRESSURE 45, MITIGATION 34 runs out of 375. Their ordering differs from the flagged-only lower bounds.
   - 10 of the 13 FALSE labels are Sonnet, and they concentrate in a few tickets (EB-039, EB-097, EB-117, EB-067).
   - This is a lead for a preregistered Study 2, not a finding.
+
+## D-041 Provenance correction: Claude's work was labelled as the author's (author, 2026-11-04)
+A review by a separate Claude session found that parts of the repo presented that session's work as the author's own:
+- The 30-row reading-pack table was saved as `AUTHOR_NOTES.md`, "written by the author… blind… pasted exactly as written". A Claude session wrote it. Renamed to `CLAUDE_READING_NOTES.md`, with a provenance notice.
+- CONCLUSIONS section 6, "Author's own conclusions", contained "I read 30 transcripts blind", "I found this myself while reading", "my follow-up labelling", and the 18-of-24 figure. All of these came from Claude sessions. The section is replaced with an empty "Author's notes" section, and the wrong attributions are listed in a dated correction notice at the top of CONCLUSIONS.md.
+- D-040 and the README called the 112 labels "author-reviewed". They are corrected to say a Claude session produced them; nothing is claimed about author review.
+- Claude Code (this session) recorded these attributions without checking where the material came from. That was its error.
+
+**Same review, other fixes:**
+- "External review" is now "review by a separate Claude session" everywhere.
+- The badge now reads "preregistered before holdout run", because the pilot and dev runs came first.
+- The integrity table now says the planned hand labels were not completed.
+- Comparisons against NEUTRAL are no longer worded causally.
+- The "can't reach a human" result is labelled an AI-labelled exploratory lead and shown with its noisy weighted estimates.
+
+Git history is not rewritten; earlier versions remain visible.
+
+## D-042: Author's notes, section 6 (2026-11-05)
+
+- The author read reading-pack transcripts #12, #20, #24, #25 and #28 inside a Claude Code session.
+- For each one, Claude Code showed the transcript, wrote a one-line summary and asked three multiple-choice questions (got what they asked for / should a human be involved / true, misleading or false). No option was marked as recommended. The author picked the answers.
+- Some summaries pointed at problems in the reply, so the wording may have steered the answers. This is disclosed in section 6.
+- The author then typed one sentence, which is reproduced verbatim.
+- This is not the blind, AI-free reading the review suggested. It is recorded as what it is.

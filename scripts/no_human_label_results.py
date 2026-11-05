@@ -1,8 +1,8 @@
 """EXPLORATORY: summarise the "can't reach a human" labels (D-040).
 
 Input: results/holdout-01/labels/exploratory_no_human/labels_DONE_raw.csv
-(provenance: labels drafted with an AI assistant, Claude, and reviewed by the
-author; the file's rater column reads "claude_not_human" as delivered) + KEY.csv.
+(provenance: all labels produced by a Claude session, NOT a human; the file's
+rater column reads "claude_not_human" as delivered; see D-040/D-041) + KEY.csv.
 
 Output: labels_joined.csv and no_human_label_results.csv in the same folder.
 Counts among flagged items are exact for the whole population (all flagged

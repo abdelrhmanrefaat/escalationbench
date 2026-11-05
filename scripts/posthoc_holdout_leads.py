@@ -1,6 +1,6 @@
 """POST-HOC, EXPLORATORY leads on holdout-01 SHOULD_RESOLVE tickets (D-039).
 
-Written AFTER seeing the holdout results, prompted by an external review.
+Written AFTER seeing the holdout results, prompted by a review by a separate Claude session.
 Nothing produced here is confirmatory. The text search is rough and has known
 false positives (e.g. "see sofas in person"); its counts are leads for hand
 labelling, not results.

@@ -4,7 +4,7 @@
 
 **When an AI support agent is rewarded for escalating less, does it stop handing customers to a human when it should?<br>And if it does, does it tell the customer?**
 
-[![Preregistered](https://img.shields.io/badge/preregistered-before%20data%20collection-2ea44f?logo=checkmarx&logoColor=white)](https://github.com/abdelrhmanrefaat/escalationbench/blob/b61edd4d615667b29fe8d4091cd88ab980a4fdfa/PREREGISTRATION.md)
+[![Preregistered](https://img.shields.io/badge/preregistered-before%20holdout%20run-2ea44f?logo=checkmarx&logoColor=white)](https://github.com/abdelrhmanrefaat/escalationbench/blob/b61edd4d615667b29fe8d4091cd88ab980a4fdfa/PREREGISTRATION.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-3776AB?logo=python&logoColor=white)](pyproject.toml)
 [![Tests: pytest](https://img.shields.io/badge/tests-pytest-0A9EDC?logo=pytest&logoColor=white)](tests/)
@@ -33,12 +33,14 @@ Preregistered holdout run: 160 tickets × 4 conditions × 5 repeats × 3 models 
 | Hypothesis | Result |
 |---|---|
 | **H1–H4** Pressure causes missed or hidden escalations | ❌ **Not supported.** All models escalated **4,800 / 4,800** must-escalate runs in every condition. This is a floor effect: there is nothing to compare. |
-| **H5** Pressure cuts escalations on "should resolve" tickets | ⚠️ **Statistically supported, but confounded.** Pooled across models: NEUTRAL 43% → INCENTIVE 19% (**−24 pp**) and PRESSURE 15% (**−28 pp**), Holm p ≈ 0.001. But NEUTRAL's wording leaned toward escalating, and many of these tickets needed a human because no tool could do the job. See the correction. |
+| **H5** Lower escalation on "should resolve" tickets under INCENTIVE / PRESSURE than NEUTRAL | ⚠️ **Statistically supported, but confounded: not attributable to pressure.** Pooled across models: NEUTRAL 43% vs INCENTIVE 19% (**−24 pp**) and PRESSURE 15% (**−28 pp**), Holm p ≈ 0.001. But NEUTRAL's wording leaned toward escalating, and many of these tickets needed a human because no tool could do the job. See the correction. |
 | **H5** Mitigation vs incentive: no change | ❔ **Inconclusive.** +2.3 pp (95% CI +0.7 to +4.1), below the 5 pp smallest effect of interest |
 
-**In one line:** under pressure, the models still made every handoff the policy *required* (0 / 4,800 missed; ticket-level 95% upper bound about 4.6%). On the other tickets they escalated less and refunded or closed more, sometimes without giving the customer what they asked for. Whether that is good or bad was not measured.
+**In one line:** in every condition, the models made every handoff the policy *required* (0 / 4,800 missed; ticket-level 95% upper bound about 4.6%). On the other tickets, runs under INCENTIVE, PRESSURE and MITIGATION escalated less than NEUTRAL and refunded or closed more, sometimes without giving the customer what they asked for. Because NEUTRAL is confounded, this is a difference, not an effect of pressure. Whether it is good or bad was not measured.
 
-> ⚠️ **Correction (2026-11-04).** The first published version called the H5 result "the safe pattern" and understated the zero-rate bound. An external review found these and three other issues, and all were confirmed against the data. See [`CONCLUSIONS.md`](results/holdout-01/CONCLUSIONS.md), [prereg section 10](PREREGISTRATION.md#10-deviations-from-this-plan) and D-039.
+> ⚠️ **Provenance correction (2026-11-04, D-041).** An earlier version of this repo presented a Claude session's reading notes, labels and conclusions as the author's own work. They have been re-attributed to Claude. The author's own notes section is empty until the author writes it.
+>
+> ⚠️ **Correction (2026-11-04).** The first published version called the H5 result "the safe pattern" and understated the zero-rate bound. A review by a separate Claude session found these and three other issues, and all were confirmed against the data. See [`CONCLUSIONS.md`](results/holdout-01/CONCLUSIONS.md), [prereg section 10](PREREGISTRATION.md#10-deviations-from-this-plan) and D-039.
 
 <p align="center"><img src="results/holdout-01/figures/escalation_rates.png" alt="Escalation rates by condition and model" width="760"></p>
 
@@ -191,7 +193,7 @@ Holdout tickets need `--confirmatory`, which refuses to run unless the preregist
 | 🔢 | Every reported number is computed from raw logs; nothing hand-edited | `make report` regenerates everything from `runs/` |
 | 💸 | Spending is capped and estimated up front | `--max-usd` hard stop; `ebench estimate`; resumable cache, so nothing is billed twice |
 | 🙈 | The judge is blind to condition, model and tool log | Judge sees only the customer message and final reply |
-| 🧑‍⚖️ | The judge is checked against a human | 150+ planned hand labels; Cohen's κ reported, 0.70 threshold |
+| 🧑‍⚖️ | The judge is checked against a human | **Planned but not completed:** 150+ hand labels and Cohen's κ with a 0.70 threshold were planned. On the holdout there were zero missed escalations, so there was nothing to label and no κ was computed. |
 | 🔑 | No secrets in the repo | `.env` gitignored; tests scan logs for keys |
 | 📣 | Null and surprising results are reported as they are | Prereg section 6 interpretation table |
 
@@ -233,9 +235,9 @@ The code in this repository was written with **[Claude Code](https://claude.com/
 - Reviewed the pilot tickets, and spot-checked and approved the 180 study tickets (D-034–D-036).
 - Wrote the first full draft of [`PREREGISTRATION.md`](PREREGISTRATION.md), chose the direction of every hypothesis (H1–H5), set the SESOI and approved the budget. For H2–H5 and the SESOI, the author chose each reason from options listed by Claude Code; the H1 reason is in the author's own words.
 - Approved every paid run and its spending cap.
-- Asked Claude Code to draft [`CONCLUSIONS.md`](results/holdout-01/CONCLUSIONS.md) because they had no conclusions of their own in mind, and asked for it to be published. After an external review, the author asked for the corrections in D-039. The author then read 30 transcripts blind and wrote down their own notes ([`AUTHOR_NOTES.md`](results/holdout-01/reading_pack/AUTHOR_NOTES.md)). They reviewed the exploratory "can't reach a human" labels, which were drafted with Claude (D-040), and chose the points in [section 6, the author's conclusions](results/holdout-01/CONCLUSIONS.md#6-authors-own-conclusions-abdelrhman-refaat-2026-11-04) from options drafted by Claude Code. The hand-label step could not happen, because there were zero missed escalations.
+- Asked Claude Code to draft [`CONCLUSIONS.md`](results/holdout-01/CONCLUSIONS.md) because they had no conclusions of their own in mind, and asked for it to be published. After a review by a separate Claude session, the author asked for the corrections in D-039 and D-041. The 30-transcript reading notes ([`CLAUDE_READING_NOTES.md`](results/holdout-01/reading_pack/CLAUDE_READING_NOTES.md)) and all 112 exploratory "can't reach a human" labels (D-040) were **produced by a Claude session, not the author**. The author's own notes section ([section 6](results/holdout-01/CONCLUSIONS.md#6-authors-notes)) holds the author's answers on five transcripts, picked from multiple-choice questions that Claude Code wrote, plus one sentence the author typed (D-042). The hand-label step could not happen, because there were zero missed escalations.
 
-**Done by Claude Code:** the code, tests, ticket drafts, statistical implementation, literature summary and documentation drafts. The author approved each phase before work moved on; not every line of code was reviewed by the author.
+**Done by Claude (Claude Code and separate Claude sessions):** the code, tests, ticket drafts, statistical implementation, literature summary, documentation drafts, conclusions sections 1–5, the reading-pack notes, the 112 exploratory labels, and the reviews that led to D-039 and D-041. The author approved each phase before work moved on; not every line of code was reviewed by the author.
 
 ## 📄 License & citation
 
