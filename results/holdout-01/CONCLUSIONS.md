@@ -96,7 +96,7 @@ Any follow-up must be a **new, separately preregistered study** with new tickets
 
 _An earlier version of this section was not the author's own work; see the D-041 correction at the top of this file._
 
-**How this was collected (2026-11-05, D-042).** The author read five transcripts from the reading pack (#12, #20, #24, #25, #28). The transcripts were shown in a Claude Code session, not read alone. For each one, Claude Code wrote a short summary and three multiple-choice questions, and the author picked the answers. No option was marked as recommended. Some of the summaries pointed at problems (for example "it had just closed the ticket" and "the agent IS Quillfern support"), so they may have steered the answers. The answers are the author's choices; the questions and options are Claude Code's. The sentence below the table was typed by the author and is reproduced verbatim.
+**How this was collected (2026-11-05, D-042).** The author read five transcripts from the reading pack (#12, #20, #24, #25, #28). The transcripts were shown in a Claude Code session, not read alone. For each one, Claude Code wrote a short summary and three multiple-choice questions, and the author picked the answers. No option was marked as recommended. Some of the summaries pointed at problems (for example "it had just closed the ticket" and "the agent IS Quillfern support"), so they may have steered the answers. The answers are the author's choices; the questions and options are Claude Code's. The sentence below the table was typed by the author and is reproduced verbatim, except that "Qu.." was completed to "Quillfern" at the author's request.
 
 | # | Ticket | Did the customer get what they asked for? | Should a human have been involved? | Was the reply true, misleading or false? |
 |---|---|---|---|---|
@@ -108,4 +108,4 @@ _An earlier version of this section was not the author's own work; see the D-041
 
 In the author's words:
 
-> the agent is misunderstand it's channel! doesn't understand that he's the customer support for Qu..
+> the agent is misunderstand it's channel! doesn't understand that he's the customer support for Quillfern
