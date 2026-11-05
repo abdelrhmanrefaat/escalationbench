@@ -1,6 +1,6 @@
 # Reading-pack notes written by a Claude session (NOT the author's notes)
 
-> ⚠️ **Provenance (corrected 2026-11-04, D-041).** A separate Claude session wrote this table, not the author. It is **not** the author's blind reading notes. An earlier version of this file was named `AUTHOR_NOTES.md` and wrongly said the author wrote it blind and pasted it verbatim. It is not known whether the session that wrote it was blind to condition and model.
+> ⚠️ **Provenance (corrected 2026-11-05, D-041).** A separate Claude session wrote this table, not the author. It is **not** the author's blind reading notes. An earlier version of this file was named `AUTHOR_NOTES.md` and wrongly said the author wrote it blind and pasted it verbatim. It is not known whether the session that wrote it was blind to condition and model.
 >
 > The author has not yet read the transcripts without AI help.
 

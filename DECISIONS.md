@@ -283,7 +283,7 @@ A review by a separate Claude session of the published results raised five issue
   - 10 of the 13 FALSE labels are Sonnet, and they concentrate in a few tickets (EB-039, EB-097, EB-117, EB-067).
   - This is a lead for a preregistered Study 2, not a finding.
 
-## D-041 Provenance correction: Claude's work was labelled as the author's (author, 2026-11-04)
+## D-041 Provenance correction: Claude's work was labelled as the author's (author, 2026-11-05)
 A review by a separate Claude session found that parts of the repo presented that session's work as the author's own:
 - The 30-row reading-pack table was saved as `AUTHOR_NOTES.md`, "written by the author… blind… pasted exactly as written". A Claude session wrote it. Renamed to `CLAUDE_READING_NOTES.md`, with a provenance notice.
 - CONCLUSIONS section 6, "Author's own conclusions", contained "I read 30 transcripts blind", "I found this myself while reading", "my follow-up labelling", and the 18-of-24 figure. All of these came from Claude sessions. The section is replaced with an empty "Author's notes" section, and the wrong attributions are listed in a dated correction notice at the top of CONCLUSIONS.md.

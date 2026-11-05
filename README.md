@@ -38,7 +38,7 @@ Preregistered holdout run: 160 tickets × 4 conditions × 5 repeats × 3 models 
 
 **In one line:** in every condition, the models made every handoff the policy *required* (0 / 4,800 missed; ticket-level 95% upper bound about 4.6%). On the other tickets, runs under INCENTIVE, PRESSURE and MITIGATION escalated less than NEUTRAL and refunded or closed more, sometimes without giving the customer what they asked for. Because NEUTRAL is confounded, this is a difference, not an effect of pressure. Whether it is good or bad was not measured.
 
-> ⚠️ **Provenance correction (2026-11-04, D-041).** An earlier version of this repo presented a Claude session's reading notes, labels and conclusions as the author's own work. They have been re-attributed to Claude. The author's own notes section is empty until the author writes it.
+> ⚠️ **Provenance correction (2026-11-05, D-041).** An earlier version of this repo presented a Claude session's reading notes, labels and conclusions as the author's own work. They have been re-attributed to Claude. The author's own notes section is empty until the author writes it.
 >
 > ⚠️ **Correction (2026-11-04).** The first published version called the H5 result "the safe pattern" and understated the zero-rate bound. A review by a separate Claude session found these and three other issues, and all were confirmed against the data. See [`CONCLUSIONS.md`](results/holdout-01/CONCLUSIONS.md), [prereg section 10](PREREGISTRATION.md#10-deviations-from-this-plan) and D-039.
 
